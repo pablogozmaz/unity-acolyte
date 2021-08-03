@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 897dcd0f427fbba4abdfe0a73ba74447, type: 3}
+  m_Name: Machine Operation Procedure
+  m_EditorClassIdentifier: 
+  infoEntries:
+  - header: "Descripci\xF3n"
+    body: Consiste en lanzar aros.
+  steps:
+  - name: Paso de prueba
+    infoEntries:
+    - header: "Tiempo de ejecuci\xF3n"
+      body: Se tarda mucho.
+    - header: "Descripci\xF3n"
+      body: Hacer muchas cosas.
+    actions:
+    - {fileID: 11400000, guid: 4d8f74d0d27feb6418853c1aa2aae093, type: 2}
+  - name: Activar lado izquierdo
+    infoEntries:
+    - header: "Descripci\xF3n"
+      body: 'Hay que hacer cosas.
+
+        Muchas cosas.'
+    actions:
+    - {fileID: 11400000, guid: b8132977dcd357648bcfad95038890ab, type: 2}
+  - name: Activar lado derecho
+    infoEntries: []
+    actions:
+    - {fileID: 11400000, guid: 8503e33a1673fbc4ab8e46fe64f1b8e9, type: 2}
+  - name: Paso final
+    infoEntries: []
+    actions:
+    - {fileID: 11400000, guid: 4d8f74d0d27feb6418853c1aa2aae093, type: 2}
