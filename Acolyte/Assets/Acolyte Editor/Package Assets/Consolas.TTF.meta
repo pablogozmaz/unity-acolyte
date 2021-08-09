@@ -4,15 +4,18 @@ TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
   fontSize: 16
-  forceTextureCase: -2
+  forceTextureCase: -1
   characterSpacing: 0
   characterPadding: 1
   includeFontData: 1
   fontNames:
   - Consolas
-  fallbackFontReferences: []
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: 80c3f6564ca203a4fb4764110ab4c7a4, type: 3}
+  - {fileID: 12800000, guid: 4ddbf85cbe46a9a438816a31da1f04ac, type: 3}
+  - {fileID: 12800000, guid: 6a27e7ffa4706b84ab9d6adac56823de, type: 3}
   customCharacters: 
-  fontRenderingMode: 0
+  fontRenderingMode: 2
   ascentCalculationMode: 1
   useLegacyBoundsCalculation: 0
   shouldRoundAdvanceValue: 1

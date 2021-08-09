@@ -61,6 +61,7 @@ namespace TFM.DynamicProcedures.Editor
                 DrawStepHeader (stepProperty, out bool shouldDelete);
                 DrawInfoEntries(stepProperty.FindPropertyRelative("infoEntries"), 30);
                 DrawStepActions(stepProperty);
+                DrawStepScript(stepProperty);
 
                 if(shouldDelete)
                 {
@@ -211,6 +212,15 @@ namespace TFM.DynamicProcedures.Editor
             {
                 stepActions.InsertArrayElementAtIndex(i);
             }
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void DrawStepScript(SerializedProperty stepProperty)
+        {
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Space(30);
+            var script = stepProperty.FindPropertyRelative("scriptAsset");
+            EditorGUILayout.PropertyField(script);
             EditorGUILayout.EndHorizontal();
         }
     }

@@ -4,14 +4,9 @@ using System.Collections.Generic;
 
 namespace Acolyte
 {
-    public class Language
+    public abstract class Language
     {
         public readonly string name;
-
-        /// <summary>
-        /// Root of the language's word tree.
-        /// </summary>
-        public readonly Word root = new Word();
 
         public string comment = "//";
         public char separator = ' ';
@@ -28,25 +23,16 @@ namespace Acolyte
         private static readonly Dictionary<string, Language> languages = new Dictionary<string, Language>();
 
 
-        public Language(string name, params InvocationScope[] scopes)
+        public Language(string name)
         {
-            languages.Add(name, this);
-
             this.name = name;
-
-            if(scopes != null)
-                foreach(var scope in scopes)
-                    AddScope(scope);
+            languages.Add(name, this);
         }
 
         public static IEnumerable<Language> GetAllLanguages() => languages.Values;
         
         public static bool TryGetLanguage(string name, out Language language) => languages.TryGetValue(name, out language);
-        
-        public void AddScope(InvocationScope scope)
-        {
-            foreach(var word in scope.rootwords)
-                root.Then(word);
-        }
+
+        public abstract Scope CreateScope();
     }
 }

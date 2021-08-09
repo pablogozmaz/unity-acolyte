@@ -24,6 +24,7 @@ MonoBehaviour:
       body: Hacer muchas cosas.
     actions:
     - {fileID: 11400000, guid: 4d8f74d0d27feb6418853c1aa2aae093, type: 2}
+    scriptAsset: {fileID: 4900000, guid: a1f83724f49f4e64e8d38b1c2bdf0e78, type: 3}
   - name: Activar lado izquierdo
     infoEntries:
     - header: "Descripci\xF3n"
@@ -32,11 +33,14 @@ MonoBehaviour:
         Muchas cosas.'
     actions:
     - {fileID: 11400000, guid: b8132977dcd357648bcfad95038890ab, type: 2}
+    scriptAsset: {fileID: 4900000, guid: a1f83724f49f4e64e8d38b1c2bdf0e78, type: 3}
   - name: Activar lado derecho
     infoEntries: []
     actions:
     - {fileID: 11400000, guid: 8503e33a1673fbc4ab8e46fe64f1b8e9, type: 2}
+    scriptAsset: {fileID: 4900000, guid: a1f83724f49f4e64e8d38b1c2bdf0e78, type: 3}
   - name: Paso final
     infoEntries: []
     actions:
     - {fileID: 11400000, guid: 4d8f74d0d27feb6418853c1aa2aae093, type: 2}
+    scriptAsset: {fileID: 4900000, guid: a1f83724f49f4e64e8d38b1c2bdf0e78, type: 3}

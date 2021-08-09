@@ -78,9 +78,9 @@ namespace Acolyte
             this.invocation = invocation;
         }
 
-        public void Invoke(ScriptActionContext actionContext)
+        public void Invoke()
         {
-            invocation?.Invoke(actionContext);
+            invocation.Invoke();
         }
     }
 
@@ -93,9 +93,9 @@ namespace Acolyte
             this.invocation = invocation;
         }
 
-        public void Invoke(ScriptActionContext actionContext, string value)
+        public void Invoke(string value)
         {
-            invocation.Invoke(actionContext, null);
+            invocation.Invoke(value);
         }
     }
 
@@ -108,9 +108,9 @@ namespace Acolyte
             this.invocation = invocation;
         }
 
-        public void Invoke(ScriptActionContext actionContext, string value)
+        public void Invoke(string value)
         {
-            invocation.Invoke(actionContext, null);
+            invocation.Invoke(value);
         }
     }
 }

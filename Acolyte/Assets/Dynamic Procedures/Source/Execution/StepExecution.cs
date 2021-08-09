@@ -26,6 +26,7 @@ namespace TFM.DynamicProcedures
 
         public ExecutionRunningState RunningState { get; private set; } = ExecutionRunningState.AwaitingStart;
 
+        private readonly Environment environment;
         private readonly StepActionExecution[] actionExecutions;
         private readonly ExecutionRegistry.Recorder registryRecorder;
         private readonly ExecutionSettings settings;
@@ -40,13 +41,14 @@ namespace TFM.DynamicProcedures
             this.step = step;
             registryRecorder = new ExecutionRegistry.Recorder(registry, this);
             this.settings = settings;
+            this.environment = environment;
 
             indexInProcedureExecution = index;
 
             RunningState = ExecutionRunningState.AwaitingStart;
 
             actionExecutions = new StepActionExecution[step.actions.Count];
-            InitializeActionexecutions(actionExecutions, environment, registry, settings);
+            InitializeActionExecutions(actionExecutions, environment, registry, settings);
         }
 
         public void Execute(Action OnStepCompleted)
@@ -61,10 +63,16 @@ namespace TFM.DynamicProcedures
 
             registryRecorder.AddEntry(ExecutionRegistry.KeyStepStarted);
 
+            step.Script.Execute(environment.GenerateExecutionContext());
+
+            // step.Script.Execute(environment.GenerateExecutionContext());
+
+            /*
             for(int i = 0; i < actionExecutions.Length; i++)
             {
                 actionExecutions[i].Execute(HandleActionExecutionCompletion);
             }
+            */
 
             NotifyStateChange();
         }
@@ -107,7 +115,7 @@ namespace TFM.DynamicProcedures
             }
         }
 
-        private void InitializeActionexecutions(StepActionExecution[] actionExecutions, 
+        private void InitializeActionExecutions(StepActionExecution[] actionExecutions, 
                                                 Environment           environment,
                                                 ExecutionRegistry     registry,
                                                 ExecutionSettings     settings)
