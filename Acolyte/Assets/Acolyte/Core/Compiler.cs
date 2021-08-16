@@ -10,10 +10,11 @@ namespace Acolyte
         private class Compiler
         {
             private readonly Script script;
-            private readonly List<Invocation> result = new List<Invocation>();
+            private readonly List<Instruction> result = new List<Instruction>();
 
             private Language Language => script.language;
-            private Scope Scope => script.scope;
+
+            private InstructionConditional conditional;
 
 
             private Compiler(Script script)
@@ -21,14 +22,14 @@ namespace Acolyte
                 this.script = script;
             }
 
-            public static Invocation[] Compile(Script script)
+            public static Executable Compile(Script script)
             {
                 return new Compiler(script).Compile();
             }
 
-            private Invocation[] Compile()
+            private Executable Compile()
             {
-                using(StringReader reader = new StringReader(script.source))
+                using(StringReader reader = new StringReader(script.Source))
                 {
                     string line;
 
@@ -39,22 +40,62 @@ namespace Acolyte
                         if(IsLineEmptyOrComment(line))
                             continue;
 
-                        string[] words = line.Split(Language.separator);
+                        string[] words = line.Split(Language.Separator);
 
-                        if(!Language.isCaseSensitive)
+                        if(!Language.IsCaseSensitive)
                             words[0] = words[0].ToLowerInvariant();
 
-                        // A line should always start with a matching initial keyword
-                        if(Scope.root.TryGetSubsequentKeyword(words[0], out Keyword keyword))
+                        if(!ProcessBuiltInKeywords(words)) 
                         {
-                            InvokeKeyword(keyword);
-
-                            ProcessWordRecursively(keyword, words, 1);
+                            ProcessLexicon(words);
                         }
                     }
                 }
 
                 return result.ToArray();
+            }
+
+            private bool ProcessBuiltInKeywords(string[] words)
+            {
+                if(conditional != null)
+                {
+                    if(words[0] == "endif")
+                    {
+                        conditional.failureJumpIndex = result.Count;
+                        conditional = null;
+                    }
+
+                }
+                else
+                {
+                    if(words[0] == "if")
+                    {
+                        conditional = new InstructionConditional();
+                        result.Add(conditional);
+                        conditional.comparison = () => { return 1 == 1; };
+
+                        // Open scope
+                        // Save IF encapsulation into scope
+                        // When scope is ended, set jump variable to if
+                        // If when scope is ended, there is an else, manage jump data..?
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            private void ProcessLexicon(string[] words)
+            {
+                // A line should always start with a matching initial keyword
+                if(script.lexicon.root.TryGetSubsequentKeyword(words[0], out Keyword keyword))
+                {
+                    AddKeyword(keyword);
+
+                    ProcessWordRecursively(keyword, words, 1);
+
+                    // Call end of line on lexicon instance
+                    AddInstruction(script.lexicon.EndOfLine);
+                }
             }
 
             private void ProcessWordRecursively(Word current, string[] words, int index)
@@ -64,57 +105,67 @@ namespace Acolyte
                 string word = words[index];
 
                 // 1 - Keywords
-                if(current.TryGetSubsequentKeyword(Language.isCaseSensitive ? word : word.ToLowerInvariant(), out Keyword keyword))
+                if(current.TryGetSubsequentKeyword(Language.IsCaseSensitive ? word : word.ToLowerInvariant(), out Keyword keyword))
                 {
-                    InvokeKeyword(keyword);
+                    AddKeyword(keyword);
                     ProcessWordRecursively(keyword, words, ++index);
                 }
                 // 2 - Identifiers
                 else if(current.SubsequentIdentifier != null)
                 {
-                    InvokeIdentifier(current.SubsequentIdentifier, word);
+                    AddIdentifier(current.SubsequentIdentifier, word);
                     ProcessWordRecursively(current.SubsequentIdentifier, words, ++index);
                 }
                 // 3 - Literals
                 else if(current.SubsequentLiteral != null)
                 {
-                    InvokeLiteral(current.SubsequentLiteral, word);
+                    AddLiteral(current.SubsequentLiteral, word);
                     ProcessWordRecursively(current.SubsequentLiteral, words, ++index);
                 }
                 else
-                    throw new System.Exception("Processed word has no subsequent words: " + word);
+                {
+                    if(Language.SupportsInvalidWords)
+                        ProcessWordRecursively(current, words, ++index);
+                    else
+                        throw new System.Exception("Processed word has no subsequent words: " + word);
+                }
             }
 
             private bool IsLineEmptyOrComment(string line)
             {
-                return string.IsNullOrEmpty(line) || line.StartsWith(Language.comment);
+                return string.IsNullOrEmpty(line) || line.StartsWith(Language.Comment);
             }
 
-            private void InvokeKeyword(Keyword keyword)
+            private void AddKeyword(Keyword keyword)
             {
                 if(keyword.HasInvocation)
                 {
-                    result.Add(() =>
+                    AddInstruction(() =>
                     {
                         keyword.Invoke();
                     });
                 }
             }
 
-            private void InvokeIdentifier(Identifier identifier, string value)
+            private void AddIdentifier(Identifier identifier, string value)
             {
-                result.Add(() =>
+                AddInstruction(() =>
                 {
                     identifier.Invoke(value);
                 });
             }
 
-            private void InvokeLiteral(Literal literal, string value)
+            private void AddLiteral(Literal literal, string value)
             {
-                result.Add(() =>
+                AddInstruction(() =>
                 {
                     literal.Invoke(value);
                 });
+            }
+
+            private void AddInstruction(Invocation invocation)
+            {
+                result.Add(new InstructionInvocation(invocation));
             }
         }
     }

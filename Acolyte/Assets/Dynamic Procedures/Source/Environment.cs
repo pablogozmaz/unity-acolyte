@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Acolyte.UnityEngine;
+using Acolyte;
 
 
 namespace TFM.DynamicProcedures
@@ -11,16 +11,18 @@ namespace TFM.DynamicProcedures
     /// The root entity containing all the available entities that may be acted upon during a procedure execution.
     /// </summary>
     [AddComponentMenu("Dynamic Procedures/Environment")]
-    public class Environment : Entity, Acolyte.IExecutionContextGenerator
+    public class Environment : Entity
     {
         public static event Action<Environment> OnEnvironmentInitialized;
 
         public IEnumerable<Entity> AllEntities { get { return entityDictionary.Values; } }
 
+        public AcolyteGameObjectsContainer AcolyteObjectsContainer { get { return acolyteObjectsContainer; } }
+
         private Dictionary<string, Entity> entityDictionary;
 
         [SerializeField]
-        private AcolyteObjectsContext acolyteObjectsContext;
+        private AcolyteGameObjectsContainer acolyteObjectsContainer;
 
 
         public bool TryGetEntity(string id, out Entity entity)
@@ -50,11 +52,6 @@ namespace TFM.DynamicProcedures
             }
 
             OnEnvironmentInitialized?.Invoke(this);
-        }
-
-        public Acolyte.ExecutionContext GenerateExecutionContext()
-        {
-            return new Acolyte.ExecutionContext(acolyteObjectsContext);
         }
     }
 }

@@ -1,35 +1,32 @@
 using System.Collections;
 using System.Collections.Generic;
 
+
 namespace Acolyte
 {
-    public interface IExecutable
+    public partial class Script
     {
-        bool Invoke();
-    }
-
-    public class ExecutableInvocation : IExecutable
-    {
-        private Invocation invocation;
-
-        public ExecutableInvocation(Invocation invocation)
+        /// <summary>
+        /// Array of instructions that can be executed.
+        /// </summary>
+        private class Executable
         {
-            this.invocation = invocation;
-        }
+            private readonly Instruction[] instructions;
 
-        public bool Invoke()
-        {
-            invocation.Invoke();
+            public Executable(Instruction[] instructions)
+            {
+                this.instructions = instructions;
+            }
 
-            return true;
-        }
-    }
+            public static implicit operator Executable(Instruction[] instructions) => new Executable(instructions);
 
-    public class ExecutableEndOfLine : IExecutable
-    {
-        public bool Invoke()
-        {
-            return false;
+            public void Execute()
+            {
+                for(int i = 0; i < instructions.Length; i++)
+                {
+                    instructions[i].Execute(ref i);
+                }
+            }
         }
     }
 }

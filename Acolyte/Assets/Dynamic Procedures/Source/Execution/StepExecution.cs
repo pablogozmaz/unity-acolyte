@@ -27,10 +27,11 @@ namespace TFM.DynamicProcedures
         public ExecutionRunningState RunningState { get; private set; } = ExecutionRunningState.AwaitingStart;
 
         private readonly Environment environment;
-        private readonly StepActionExecution[] actionExecutions;
+        private readonly ExecutionRegistry registry;
         private readonly ExecutionRegistry.Recorder registryRecorder;
         private readonly ExecutionSettings settings;
 
+        private StepActionExecution[] actionExecutions;
         private HashSet<StepActionExecution> pendingActionExecutions;
 
         private Action executionCompletionCallback;
@@ -40,15 +41,23 @@ namespace TFM.DynamicProcedures
         {
             this.step = step;
             registryRecorder = new ExecutionRegistry.Recorder(registry, this);
-            this.settings = settings;
             this.environment = environment;
+            this.registry = registry;
+            this.settings = settings;
 
             indexInProcedureExecution = index;
 
             RunningState = ExecutionRunningState.AwaitingStart;
 
-            actionExecutions = new StepActionExecution[step.actions.Count];
-            InitializeActionExecutions(actionExecutions, environment, registry, settings);
+            // actionExecutions = new StepActionExecution[step.actions.Count];
+            // InitializeActionExecutions(actionExecutions, environment, registry, settings);
+
+            // Script is executed on initialization, since we use it to configure actions
+            step.Script.Execute(environment.AcolyteObjectsContainer, (StepAction[] stepActions) =>
+            {
+                actionExecutions = new StepActionExecution[stepActions.Length];
+                InitializeActionExecutions(stepActions);
+            });
         }
 
         public void Execute(Action OnStepCompleted)
@@ -57,22 +66,17 @@ namespace TFM.DynamicProcedures
 
             RunningState = ExecutionRunningState.InProcess;
 
-            pendingActionExecutions = new HashSet<StepActionExecution>(actionExecutions);
+            pendingActionExecutions = new HashSet<StepActionExecution>();
 
             executionCompletionCallback = OnStepCompleted;
 
             registryRecorder.AddEntry(ExecutionRegistry.KeyStepStarted);
 
-            step.Script.Execute(environment.GenerateExecutionContext());
-
-            // step.Script.Execute(environment.GenerateExecutionContext());
-
-            /*
             for(int i = 0; i < actionExecutions.Length; i++)
             {
+                pendingActionExecutions.Add(actionExecutions[i]);
                 actionExecutions[i].Execute(HandleActionExecutionCompletion);
             }
-            */
 
             NotifyStateChange();
         }
@@ -115,25 +119,22 @@ namespace TFM.DynamicProcedures
             }
         }
 
-        private void InitializeActionExecutions(StepActionExecution[] actionExecutions, 
-                                                Environment           environment,
-                                                ExecutionRegistry     registry,
-                                                ExecutionSettings     settings)
+        private void InitializeActionExecutions(StepAction[] stepActions)
         {
             Debug.Assert(actionExecutions != null);
-            Debug.Assert(actionExecutions.Length == step.actions.Count);
+            Debug.Assert(actionExecutions.Length == stepActions.Length);
 
-            for(int i = 0; i < step.actions.Count; i++)
+            for(int i = 0; i < stepActions.Length; i++)
             {
                 StepActionExecution.InitializationParameters parameters = new StepActionExecution.InitializationParameters()
                 {
                     environment = environment,
-                    stepAction  = step.actions[i],
+                    stepAction  = stepActions[i],
                     registry    = registry,
                     settings    = settings
                 };
 
-                actionExecutions[i] = StepActionExecution.Create(step.actions[i].GetType(), parameters);
+                actionExecutions[i] = StepActionExecution.Create(stepActions[i].GetType(), parameters);
             }
         }
 

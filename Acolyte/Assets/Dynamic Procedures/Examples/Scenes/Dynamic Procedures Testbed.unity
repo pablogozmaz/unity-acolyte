@@ -1109,7 +1109,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 82d2541b-0ddb-4775-adbe-7c1f5b97cfd5
   properties: {fileID: 1337076788}
-  acolyteObjectsContext: {fileID: 1337076791}
+  acolyteObjectsContainer: {fileID: 1337076791}
 --- !u!4 &1337076790
 Transform:
   m_ObjectHideFlags: 0
@@ -1135,11 +1135,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 1337076787}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c2b09251bea8954e8ebdfc42661ec9d, type: 3}
+  m_Script: {fileID: 11500000, guid: b7d76551354e645439bd751063db0c65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  identifiers:
-  - {fileID: 1480280446}
+  data:
+  - identifier: Machine
+    obj:
+    - {fileID: 1480280442}
+  - identifier: AssemblyParts1
+    obj:
+    - {fileID: 897487256}
+    - {fileID: 1661309237}
+    - {fileID: 588026740}
+  - identifier: AssemblyParts2
+    obj:
+    - {fileID: 1595846714}
+    - {fileID: 1033566673}
 --- !u!1 &1480280442
 GameObject:
   m_ObjectHideFlags: 0
@@ -1151,7 +1162,6 @@ GameObject:
   - component: {fileID: 1480280443}
   - component: {fileID: 1480280444}
   - component: {fileID: 1480280445}
-  - component: {fileID: 1480280446}
   m_Layer: 0
   m_Name: Machine
   m_TagString: Untagged
@@ -1191,7 +1201,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f48b8c59c59ac5f4b8db0dd128ded87a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: My Machine
+  id: Machine
   properties: {fileID: 1480280445}
 --- !u!114 &1480280445
 MonoBehaviour:
@@ -1221,20 +1231,6 @@ MonoBehaviour:
 
     bool Part 5 Active
     = false'
---- !u!114 &1480280446
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1480280442}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1004b0b7a5d54c346a9008484a5f4a9d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  id: Machine
-  tags: []
 --- !u!1 &1595846714
 GameObject:
   m_ObjectHideFlags: 0
@@ -1632,7 +1628,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2239606296364035326, guid: ab02f8172b6f5a649b27f54eda3e4fa3, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 342
       objectReference: {fileID: 0}
     - target: {fileID: 2239606296364035326, guid: ab02f8172b6f5a649b27f54eda3e4fa3, type: 3}
       propertyPath: m_SizeDelta.y
@@ -1640,7 +1636,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2239606296364035326, guid: ab02f8172b6f5a649b27f54eda3e4fa3, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 171
       objectReference: {fileID: 0}
     - target: {fileID: 2239606296364035326, guid: ab02f8172b6f5a649b27f54eda3e4fa3, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -1832,7 +1828,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4831815196741894691, guid: ab02f8172b6f5a649b27f54eda3e4fa3, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.00024414062
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4852836745101143125, guid: ab02f8172b6f5a649b27f54eda3e4fa3, type: 3}
       propertyPath: m_AnchorMax.y
@@ -1920,11 +1916,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7492138353831200713, guid: ab02f8172b6f5a649b27f54eda3e4fa3, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7573981790292896913, guid: ab02f8172b6f5a649b27f54eda3e4fa3, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -27.520004
+      value: -0.000015258789
       objectReference: {fileID: 0}
     - target: {fileID: 7576836973739052642, guid: ab02f8172b6f5a649b27f54eda3e4fa3, type: 3}
       propertyPath: m_AnchoredPosition.y

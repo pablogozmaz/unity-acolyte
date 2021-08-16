@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -5,50 +6,52 @@ using System.Collections.Generic;
 namespace Acolyte
 {
     /// <summary>
-    /// Encapsulates a script for runtime reference and execution.
+    /// Encapsulates a script for runtime reference, compilation and execution.
     /// </summary>
     public sealed partial class Script
     {
-        public readonly string source;
+        public string Source { get; private set; }
+
         public readonly Language language;
 
-        private readonly Scope scope;
+        private readonly Lexicon lexicon;
 
-        private Invocation[] executable;
+        private Executable executable;
 
 
-        public Script(string text, Language language, bool compileOnCreation = false)
+        public Script(string source, Language language, bool compileOnCreation = false)
         {
-            source = text;
+            Source = source;
             this.language = language;
 
-            // Each script contains its own scope
-            scope = language.CreateScope();
+            // Each script contains its own lexicon instance
+            lexicon = language.CreateLexicon();
 
             if(compileOnCreation)
                 Compile();
         }
 
-        public void Compile() 
+        public void Modify(string source, bool compile = false)
         {
-            executable = Compiler.Compile(this);
+            Source = source;
+
+            if(compile)
+                Compile();
         }
 
-        public void Execute(params IExecutionSubcontext[] subcontexts) => Execute(new ExecutionContext(subcontexts));
-
-        public void Execute(ExecutionContext executionContext)
+        public void Execute<T>(object context, Action<T> callback) where T : class
         {
             if(executable != null)
                 Compile();
 
-            scope.StartExecution(executionContext);
+            lexicon.StartExecution(context);
+            executable.Execute();
+            lexicon.CompleteExecution(callback);
+        }
 
-            foreach(var invocation in executable)
-            {
-                invocation.Invoke();
-            }
-
-            scope.CompleteExecution();
+        private void Compile()
+        {
+            executable = Compiler.Compile(this);
         }
     }
 }

@@ -7,6 +7,8 @@ namespace TFM.DynamicProcedures.Examples
 {
     public class MachinePartInteractor : MonoBehaviour
     {
+        public string PropertyName { get { return propertyName; } }
+
         [SerializeField]
         private Properties machineProperties;
 

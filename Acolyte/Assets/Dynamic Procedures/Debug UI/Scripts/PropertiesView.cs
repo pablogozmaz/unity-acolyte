@@ -18,7 +18,7 @@ namespace TFM.DynamicProcedures.DebugUI
         private TextMeshProUGUI text;
 
 
-        public void ShowProperties(Properties properties, string propertyHolderName = "<i>NONE</i>")
+        public void ShowProperties(Properties properties, string propertyHolderName = "<i>Nothing selected</i>")
         {
             if(this.properties != null)
             {
@@ -29,7 +29,7 @@ namespace TFM.DynamicProcedures.DebugUI
 
             if(!gameObject.activeSelf) gameObject.SetActive(true);
 
-            this.propertyHolderName.text = "<b>Properties:</b> " + propertyHolderName;
+            this.propertyHolderName.text = propertyHolderName;
 
             SetPropertiesText(properties);
 
@@ -57,7 +57,7 @@ namespace TFM.DynamicProcedures.DebugUI
             }
             else
             {
-                text.text = "No properties";
+                text.text = "No properties.";
             }
         }
 

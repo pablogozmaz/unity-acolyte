@@ -13,13 +13,14 @@ namespace TFM.DynamicProcedures
 
         private StepScript() : base("StepScript")
         {
-            isCaseSensitive = false;
-            supportsInvalidWords = true;
+            IsCaseSensitive = false;
+            SupportsInvalidWords = true;
         }
 
-        public override Scope CreateScope()
+        // Define the desired scope
+        public override Lexicon CreateLexicon()
         {
-            return new StepScriptScope();
+            return new StepScriptLexicon();
         }
     }
 }
