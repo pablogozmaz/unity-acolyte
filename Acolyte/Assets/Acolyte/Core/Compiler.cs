@@ -5,168 +5,169 @@ using System.IO;
 
 namespace Acolyte
 {
-    public partial class Script
+    /// <summary>
+    /// Compiles a script's source code to an array of executable instructions.
+    /// </summary>
+    public class Compiler
     {
-        private class Compiler
+        private readonly List<Instruction> instructions = new List<Instruction>();
+
+        private readonly Language language;
+        private readonly Lexicon lexicon;
+        private readonly string source;
+        private readonly ICommand[] commands;
+
+
+        private Compiler(Language language, Lexicon lexicon, string source)
         {
-            private readonly Script script;
-            private readonly List<Instruction> result = new List<Instruction>();
+            this.language = language;
+            this.lexicon = lexicon;
+            this.source = source;
 
-            private Language Language => script.language;
+            commands = language.GenerateCommands();
+        }
 
-            private InstructionConditional conditional;
+        public static Executable Compile(Language language, Lexicon lexicon, string source)
+        {
+            return new Compiler(language, lexicon, source).Compile();
+        }
 
-
-            private Compiler(Script script)
+        private Executable Compile()
+        {
+            using(StringReader reader = new StringReader(source))
             {
-                this.script = script;
-            }
+                string line;
 
-            public static Executable Compile(Script script)
-            {
-                return new Compiler(script).Compile();
-            }
-
-            private Executable Compile()
-            {
-                using(StringReader reader = new StringReader(script.Source))
+                while((line = reader.ReadLine()) != null)
                 {
-                    string line;
+                    line = line.Trim();
 
-                    while((line = reader.ReadLine()) != null)
+                    if(IsLineEmptyOrComment(line))
+                        continue;
+
+                    if(!ProcessCommands(line))
                     {
-                        line = line.Trim();
+                        string[] words = line.Split(language.Separator);
 
-                        if(IsLineEmptyOrComment(line))
-                            continue;
-
-                        string[] words = line.Split(Language.Separator);
-
-                        if(!Language.IsCaseSensitive)
+                        if(!language.IsCaseSensitive)
                             words[0] = words[0].ToLowerInvariant();
 
-                        if(!ProcessBuiltInKeywords(words)) 
-                        {
-                            ProcessLexicon(words);
-                        }
+                        ProcessLexicon(words);
                     }
                 }
-
-                return result.ToArray();
             }
 
-            private bool ProcessBuiltInKeywords(string[] words)
+            return instructions.ToArray();
+        }
+
+        private bool ProcessCommands(string line)
+        {
+            if(commands == null) return false;
+
+            foreach(var command in commands)
             {
-                if(conditional != null)
+                if(command.Process(line, instructions.Count, out Instruction instruction))
                 {
-                    if(words[0] == "endif")
-                    {
-                        conditional.failureJumpIndex = result.Count;
-                        conditional = null;
-                    }
-
+                    if(instruction != null)
+                        instructions.Add(instruction);
+                    return true;
                 }
-                else
-                {
-                    if(words[0] == "if")
-                    {
-                        conditional = new InstructionConditional();
-                        result.Add(conditional);
-                        conditional.comparison = () => { return 1 == 1; };
-
-                        // Open scope
-                        // Save IF encapsulation into scope
-                        // When scope is ended, set jump variable to if
-                        // If when scope is ended, there is an else, manage jump data..?
-                        return true;
-                    }
-                }
-                return false;
             }
+            return false;
+        }
 
-            private void ProcessLexicon(string[] words)
+        private void ProcessLexicon(string[] words)
+        {
+            // A line should always start with a matching initial keyword
+            if(lexicon.root.TryGetSubsequentKeyword(words[0], out Keyword keyword))
             {
-                // A line should always start with a matching initial keyword
-                if(script.lexicon.root.TryGetSubsequentKeyword(words[0], out Keyword keyword))
-                {
-                    AddKeyword(keyword);
+                AddKeyword(keyword);
 
-                    ProcessWordRecursively(keyword, words, 1);
+                ProcessWordRecursively(keyword, words, 1);
 
-                    // Call end of line on lexicon instance
-                    AddInstruction(script.lexicon.EndOfLine);
-                }
+                // Call end of line on lexicon instance
+                AddInstruction(lexicon.EndOfLine);
             }
+        }
 
-            private void ProcessWordRecursively(Word current, string[] words, int index)
+        private void ProcessWordRecursively(Word current, string[] words, int index)
+        {
+            if(index >= words.Length) return;
+
+            string word = words[index];
+            Word next;
+
+            // 1 - Keyword
+            if(current.TryGetSubsequentKeyword(language.IsCaseSensitive ? word : word.ToLowerInvariant(), out Keyword keyword))
             {
-                if(index >= words.Length) return;
-
-                string word = words[index];
-
-                // 1 - Keywords
-                if(current.TryGetSubsequentKeyword(Language.IsCaseSensitive ? word : word.ToLowerInvariant(), out Keyword keyword))
-                {
-                    AddKeyword(keyword);
-                    ProcessWordRecursively(keyword, words, ++index);
-                }
-                // 2 - Identifiers
-                else if(current.SubsequentIdentifier != null)
-                {
-                    AddIdentifier(current.SubsequentIdentifier, word);
-                    ProcessWordRecursively(current.SubsequentIdentifier, words, ++index);
-                }
-                // 3 - Literals
-                else if(current.SubsequentLiteral != null)
-                {
-                    AddLiteral(current.SubsequentLiteral, word);
-                    ProcessWordRecursively(current.SubsequentLiteral, words, ++index);
-                }
-                else
-                {
-                    if(Language.SupportsInvalidWords)
-                        ProcessWordRecursively(current, words, ++index);
-                    else
-                        throw new System.Exception("Processed word has no subsequent words: " + word);
-                }
+                AddKeyword(keyword);
+                next = keyword;
             }
-
-            private bool IsLineEmptyOrComment(string line)
+            // 2 - Tolerated word
+            else if(current.IsTolerated(word))
             {
-                return string.IsNullOrEmpty(line) || line.StartsWith(Language.Comment);
+                next = current;
             }
-
-            private void AddKeyword(Keyword keyword)
+            // 3 - Identifier
+            else if(current.SubsequentIdentifier != null)
             {
-                if(keyword.HasInvocation)
-                {
-                    AddInstruction(() =>
-                    {
-                        keyword.Invoke();
-                    });
-                }
+                AddIdentifier(current.SubsequentIdentifier, word);
+                next = current.SubsequentIdentifier;
+            }
+            // 4 - Literal
+            else if(current.SubsequentLiteral != null)
+            {
+                AddLiteral(current.SubsequentLiteral, word);
+                next = current.SubsequentLiteral;
+            }
+            else
+            {
+                throw new System.Exception("Could not process word [" + word+"] in line ["+ Join(words) + "].");
             }
 
-            private void AddIdentifier(Identifier identifier, string value)
+            ProcessWordRecursively(next, words, ++index);
+        }
+
+        private bool IsLineEmptyOrComment(string line)
+        {
+            return string.IsNullOrEmpty(line) || line.StartsWith(language.Comment);
+        }
+
+        private void AddKeyword(Keyword keyword)
+        {
+            if(keyword.HasInvocation)
             {
                 AddInstruction(() =>
                 {
-                    identifier.Invoke(value);
+                    keyword.Invoke();
                 });
             }
+        }
 
-            private void AddLiteral(Literal literal, string value)
+        private void AddIdentifier(Identifier identifier, string value)
+        {
+            AddInstruction(() =>
             {
-                AddInstruction(() =>
-                {
-                    literal.Invoke(value);
-                });
-            }
+                identifier.Invoke(value);
+            });
+        }
 
-            private void AddInstruction(Invocation invocation)
+        private void AddLiteral(Literal literal, string value)
+        {
+            AddInstruction(() =>
             {
-                result.Add(new InstructionInvocation(invocation));
-            }
+                literal.Invoke(value);
+            });
+        }
+
+        private void AddInstruction(Invocation invocation)
+        {
+            instructions.Add(new InstructionInvocation(invocation));
+        }
+
+        private string Join(string[] array)
+        {
+            return string.Join(language.Separator.ToString(), array);
         }
     }
 }

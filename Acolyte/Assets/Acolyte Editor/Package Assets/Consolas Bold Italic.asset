@@ -162,9 +162,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
   m_Name: Consolas Bold Italic
   m_EditorClassIdentifier: 
-  hashCode: 0
+  hashCode: 1269779999
   material: {fileID: -6135626249211151950}
-  materialHashCode: 0
+  materialHashCode: 984240991
   m_Version: 1.1.0
   m_SourceFontFileGUID: 80c3f6564ca203a4fb4764110ab4c7a4
   m_SourceFontFile_EditorRef: {fileID: 12800000, guid: 80c3f6564ca203a4fb4764110ab4c7a4, type: 3}
@@ -190,7 +190,7 @@ MonoBehaviour:
     m_UnderlineThickness: 8.525391
     m_StrikethroughOffset: 18
     m_StrikethroughThickness: 8.525391
-    m_TabWidth: 49
+    m_TabWidth: 24
   m_GlyphTable: []
   m_CharacterTable: []
   m_AtlasTextures:

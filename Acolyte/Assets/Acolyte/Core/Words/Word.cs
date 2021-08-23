@@ -16,6 +16,8 @@ namespace Acolyte
 
         private Dictionary<string, Keyword> subsequentKeywords;
 
+        private static HashSet<string> tolerated;
+
 
         public bool TryGetSubsequentKeyword(string text, out Keyword keyword)
         {
@@ -60,6 +62,25 @@ namespace Acolyte
                 throw new Exception("Only a single literal can follow a word.");
 
             SubsequentLiteral = literal;
+        }
+
+        /// <summary>
+        /// Add a string as a tolerated word whose processing will be ignored, passing to the next word.
+        /// </summary>
+        public void Tolerate(string word)
+        {
+            if(tolerated == null)
+                tolerated = new HashSet<string>();
+            else if(tolerated.Contains(word))
+                return;
+            tolerated.Add(word);
+        }
+
+        public bool IsTolerated(string word)
+        {
+            if(tolerated == null) return false;
+
+            return tolerated.Contains(word);
         }
     }
 }

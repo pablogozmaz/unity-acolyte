@@ -59,9 +59,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
   m_Name: Consolas Italic
   m_EditorClassIdentifier: 
-  hashCode: 0
+  hashCode: -1667652038
   material: {fileID: 1212561993400568089}
-  materialHashCode: 0
+  materialHashCode: 311266266
   m_Version: 1.1.0
   m_SourceFontFileGUID: 6a27e7ffa4706b84ab9d6adac56823de
   m_SourceFontFile_EditorRef: {fileID: 12800000, guid: 6a27e7ffa4706b84ab9d6adac56823de, type: 3}
@@ -87,7 +87,7 @@ MonoBehaviour:
     m_UnderlineThickness: 6.328125
     m_StrikethroughOffset: 18
     m_StrikethroughThickness: 6.328125
-    m_TabWidth: 49
+    m_TabWidth: 24
   m_GlyphTable: []
   m_CharacterTable: []
   m_AtlasTextures:

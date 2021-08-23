@@ -6,7 +6,7 @@ using TMPro;
 
 namespace Acolyte.Editor
 {
-    [CreateAssetMenu(fileName = "Diesel Editor Configuration", menuName = "Diesel/Editor Configuration")]
+    [CreateAssetMenu(fileName = "Acolyte Editor Configuration", menuName = "Acolyte/Editor Configuration")]
     public class AcolyteEditorConfiguration : ScriptableObject
     {
         public TMP_FontAsset FontAsset { get { return fontAsset; } }

@@ -6,15 +6,17 @@ using Acolyte;
 
 namespace TFM.DynamicProcedures
 {
-    public partial class StepScript : Language
+    public class StepScript : Language
     {
-        public static readonly StepScript instance = new StepScript();
+        public override string Name => "StepScript";
 
-
-        private StepScript() : base("StepScript")
+        public StepScript()
         {
             IsCaseSensitive = false;
-            SupportsInvalidWords = true;
+
+            AddCommandFactory(IfElse.Factory);
+
+            AddExpression("profile is expert", IsProfileExpert);
         }
 
         // Define the desired scope
@@ -22,5 +24,7 @@ namespace TFM.DynamicProcedures
         {
             return new StepScriptLexicon();
         }
+
+        private bool IsProfileExpert() { return true; }
     }
 }

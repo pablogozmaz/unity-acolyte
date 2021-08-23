@@ -3,6 +3,9 @@ using System;
 
 namespace Acolyte
 {
+    /// <summary>
+    /// Identifier word with a Unity object as the invocation parameter.
+    /// </summary>
     public class UnityIdentifier<T> : Identifier<T> where T : class
     {
         private readonly Func<UnityContainerBehaviour<T>> containerProvider;
@@ -14,9 +17,9 @@ namespace Acolyte
 
         public override void Invoke(string value)
         {
-            var tracker = containerProvider.Invoke();
+            var container = containerProvider.Invoke();
 
-            if(tracker.TryGetObject(value, out T obj))
+            if(container.TryGetObject(value, out T obj))
             {
                 invocation.Invoke(obj);
             }

@@ -51,7 +51,7 @@ namespace Acolyte
 
         private void Compile()
         {
-            executable = Compiler.Compile(this);
+            executable = Compiler.Compile(language, lexicon, Source);
         }
     }
 }

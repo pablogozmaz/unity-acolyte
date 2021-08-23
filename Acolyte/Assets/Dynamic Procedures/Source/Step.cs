@@ -15,19 +15,9 @@ namespace TFM.DynamicProcedures
 
         public List<StepAction> actions;
 
-        public Acolyte.Script Script
-        {
-            get
-            {
-                if(script == null)
-                    script = new Acolyte.Script(scriptAsset.text, StepScript.instance, true);
-                return script;
-            }
-        }
-
-        private Acolyte.Script script;
+        public Acolyte.Script Script => scriptAsset.Script;
 
         [SerializeField]
-        private TextAsset scriptAsset;
+        private StepScriptAsset scriptAsset;
     }
 }

@@ -38,18 +38,18 @@ namespace TFM.DynamicProcedures
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Initialize()
         {
-            OnRequestWords += GenerateCoreModule;
+            OnRequestWords += GenerateMainWordTree;
         }
 
-        private static Word[] GenerateCoreModule(Lexicon scope) 
+        private static Word[] GenerateMainWordTree(Lexicon scope) 
         {
-            return scope is StepScriptLexicon stepScriptScope ? stepScriptScope.GenerateCoreModule() : null;
+            return scope is StepScriptLexicon stepScriptScope ? stepScriptScope.GenerateMainWordTree() : null;
         }
 
-        private Word[] GenerateCoreModule()
+        private Word[] GenerateMainWordTree()
         {
-            Keyword place = new Keyword("place", SetActionTypePlace);
-            Keyword interact = new Keyword("interact", SetActionTypeInteract);
+            Keyword place = new Keyword("place", CreateActionTypePlace);
+            Keyword interact = new Keyword("interact", CreateActionTypeInteract);
 
             var selectSingle = new UnityIdentifier<GameObject[]>(SetActionTarget, ()=> { return objectsContainer; });
             var multiPrefix = new Keyword("all");
@@ -62,6 +62,7 @@ namespace TFM.DynamicProcedures
             place.Then(multiPrefix);
             interact.Then(selectSingle);
             interact.Then(multiPrefix);
+            interact.Tolerate("with");
 
             selectSingle.Then(toolPrefix);
             multiPrefix.Then(selectMulti);
@@ -80,14 +81,14 @@ namespace TFM.DynamicProcedures
                 throw new Exception("Invalid type for action retrieval.");
         }
 
-        private void SetActionTypePlace()
+        private void CreateActionTypePlace()
         {
             // Add new action
             var action = ScriptableObject.CreateInstance<Examples.MachineOperationAction>();
             stepActions.Add(action);
         }
 
-        private void SetActionTypeInteract()
+        private void CreateActionTypeInteract()
         {
             // Add new action
             var action = ScriptableObject.CreateInstance<Examples.MachineOperationAction>();
