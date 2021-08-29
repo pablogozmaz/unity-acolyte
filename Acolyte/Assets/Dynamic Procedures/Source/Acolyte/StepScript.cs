@@ -20,7 +20,7 @@ namespace TFM.DynamicProcedures
         }
 
         // Define the desired scope
-        public override Lexicon CreateLexicon()
+        public override Declexicon CreateLexicon()
         {
             return new StepScriptLexicon();
         }

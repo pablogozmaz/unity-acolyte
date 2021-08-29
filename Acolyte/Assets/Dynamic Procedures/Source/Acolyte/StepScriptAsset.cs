@@ -9,6 +9,6 @@ namespace TFM.DynamicProcedures
     [CreateAssetMenu(fileName = "StepScript", menuName = "StepScript Asset")]
     public sealed class StepScriptAsset : ScriptAsset<StepScript>
     {
-        protected override bool autoCompileOnInitialization => true;
+        protected override bool AutoCompileOnInitialization => true;
     }
 }

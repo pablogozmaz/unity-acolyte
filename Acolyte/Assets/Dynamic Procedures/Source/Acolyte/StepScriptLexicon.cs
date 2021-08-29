@@ -7,7 +7,7 @@ using Acolyte;
 
 namespace TFM.DynamicProcedures
 {
-    public sealed partial class StepScriptLexicon : Lexicon
+    public sealed partial class StepScriptLexicon : Declexicon
     {
         private AcolyteGameObjectsContainer objectsContainer;
 
@@ -38,10 +38,10 @@ namespace TFM.DynamicProcedures
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Initialize()
         {
-            OnRequestWords += GenerateMainWordTree;
+            WordsRequested += GenerateMainWordTree;
         }
 
-        private static Word[] GenerateMainWordTree(Lexicon scope) 
+        private static Word[] GenerateMainWordTree(Declexicon scope) 
         {
             return scope is StepScriptLexicon stepScriptScope ? stepScriptScope.GenerateMainWordTree() : null;
         }

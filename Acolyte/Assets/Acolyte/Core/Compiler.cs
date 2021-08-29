@@ -13,23 +13,23 @@ namespace Acolyte
         private readonly List<Instruction> instructions = new List<Instruction>();
 
         private readonly Language language;
-        private readonly Lexicon lexicon;
+        private readonly Declexicon declexicon;
         private readonly string source;
-        private readonly ICommand[] commands;
+        private readonly IStatement[] statements;
 
 
-        private Compiler(Language language, Lexicon lexicon, string source)
+        private Compiler(Language language, Declexicon declexicon, string source)
         {
             this.language = language;
-            this.lexicon = lexicon;
+            this.declexicon = declexicon;
             this.source = source;
 
-            commands = language.GenerateCommands();
+            statements = language.GenerateCommands();
         }
 
-        public static Executable Compile(Language language, Lexicon lexicon, string source)
+        public static Executable Compile(Language language, Declexicon declexicon, string source)
         {
-            return new Compiler(language, lexicon, source).Compile();
+            return new Compiler(language, declexicon, source).Compile();
         }
 
         private Executable Compile()
@@ -45,14 +45,14 @@ namespace Acolyte
                     if(IsLineEmptyOrComment(line))
                         continue;
 
-                    if(!ProcessCommands(line))
+                    if(!ProcessStatements(line))
                     {
                         string[] words = line.Split(language.Separator);
 
                         if(!language.IsCaseSensitive)
                             words[0] = words[0].ToLowerInvariant();
 
-                        ProcessLexicon(words);
+                        ProcessDeclexicon(words);
                     }
                 }
             }
@@ -60,15 +60,16 @@ namespace Acolyte
             return instructions.ToArray();
         }
 
-        private bool ProcessCommands(string line)
+        private bool ProcessStatements(string line)
         {
-            if(commands == null) return false;
+            if(statements == null) return false;
 
-            foreach(var command in commands)
+            foreach(var statement in statements)
             {
-                if(command.Process(line, instructions.Count, out Instruction instruction))
+                if(statement.TryGetProcess(line, out var process))
                 {
-                    if(instruction != null)
+                    Instruction instruction = process.function.Invoke(new StatementParameters(line, instructions.Count));
+                    if(instruction != null) // Not all processes produce an instruction
                         instructions.Add(instruction);
                     return true;
                 }
@@ -76,17 +77,15 @@ namespace Acolyte
             return false;
         }
 
-        private void ProcessLexicon(string[] words)
+        private void ProcessDeclexicon(string[] words)
         {
             // A line should always start with a matching initial keyword
-            if(lexicon.root.TryGetSubsequentKeyword(words[0], out Keyword keyword))
+            if(declexicon.root.TryGetSubsequentKeyword(words[0], out Keyword keyword))
             {
                 AddKeyword(keyword);
-
                 ProcessWordRecursively(keyword, words, 1);
 
-                // Call end of line on lexicon instance
-                AddInstruction(lexicon.EndOfLine);
+                AddInstruction(declexicon.EndOfLine); // Call end of line on declexicon instance
             }
         }
 

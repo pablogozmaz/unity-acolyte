@@ -5,7 +5,13 @@ using System.Collections.Generic;
 
 namespace Acolyte
 {
-    public interface IExpression {}
+    /// <summary>
+    /// Interface inherited by all expression types.
+    /// </summary>
+    public interface IExpression
+    {
+        IEnumerable<string> GetAllExpressionTokens();
+    }
 
     public class Expression<T> : IExpression where T : struct
     {
@@ -26,6 +32,11 @@ namespace Acolyte
 
             value = default;
             return false;
+        }
+
+        public IEnumerable<string> GetAllExpressionTokens()
+        {
+            return dictionary.Keys;
         }
     }
 }

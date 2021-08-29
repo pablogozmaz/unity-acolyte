@@ -18,7 +18,7 @@ namespace Acolyte
         /// </summary>
         private static readonly Dictionary<string, Language> languages = new Dictionary<string, Language>();
 
-        private List<Func<ICommand>> commandFactories;
+        private List<Func<IStatement>> commandFactories;
 
         private Dictionary<Type, IExpression> expressions;
 
@@ -35,7 +35,7 @@ namespace Acolyte
         /// <summary>
         /// Creates a scope instance whose type is the required type for the language.
         /// </summary>
-        public abstract Lexicon CreateLexicon();
+        public abstract Declexicon CreateLexicon();
 
         public void AddExpression<T>(string expression, Func<T> func) where T : struct 
         {
@@ -61,13 +61,22 @@ namespace Acolyte
             return false;
         }
 
+        public IEnumerable<string> GetExpressionsOfType(Type type)
+        {
+            if(expressions.TryGetValue(type, out var expression))
+            {
+                return expression.GetAllExpressionTokens();
+            }
+            return null;
+        }
+
         /// <summary>
         /// Add a command factory method that will provide a Command instance to the compiler to process.
         /// </summary>
-        public void AddCommandFactory(Func<ICommand> commandFactory)
+        public void AddCommandFactory(Func<IStatement> commandFactory)
         {
             if(commandFactories == null)
-                commandFactories = new List<Func<ICommand>>();
+                commandFactories = new List<Func<IStatement>>();
 
             commandFactories.Add(commandFactory);
         }
@@ -75,11 +84,11 @@ namespace Acolyte
         /// <summary>
         /// Returns an array of Command instances generated from command factories added to this language.
         /// </summary>
-        public ICommand[] GenerateCommands() 
+        public IStatement[] GenerateCommands() 
         {
             if(commandFactories != null)
             {
-                ICommand[] array = new ICommand[commandFactories.Count];
+                IStatement[] array = new IStatement[commandFactories.Count];
 
                 for(int i = 0; i < commandFactories.Count; i++)
                 {

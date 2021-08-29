@@ -1,9 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
+using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
 
 
 namespace Acolyte.Editor
@@ -11,79 +8,146 @@ namespace Acolyte.Editor
     /// <summary>
     /// Editing field for script source code.
     /// </summary>
-    [ExecuteInEditMode]
     public class AcolyteScriptField : MonoBehaviour
     {
         private const string newLine = "\n";
 
-        private ScriptAsset script;
+        private ScriptAsset scriptAsset;
 
         [SerializeField]
-        private TMP_Text countField;
+        private float lineMargin = 2;
 
         [SerializeField]
-        private TMP_InputField textField;
+        private AcolyteLineField lineFieldPrefab;
+
+        [SerializeField]
+        private AcolyteContextualizer contextualizer;
+
+        private readonly List<AcolyteLineField> lines = new List<AcolyteLineField>();
+
+        private int poolIndex;
+
+        private AcolyteLineField selectedLine;
+        private AcolyteWordField selectedWord;
 
 
-        public void SetScript(ScriptAsset script)
+        public void SetScript(ScriptAsset scriptAsset)
         {
-            this.script = script;
-            RenderScript(script.Script.Source);
+            this.scriptAsset = scriptAsset;
+            RenderScript(scriptAsset.Script.Source);
         }
 
-        public void SetFontSize(float fontSize)
+        public void Save()
         {
-            textField.pointSize = fontSize;
-            countField.fontSize = fontSize;
+            scriptAsset.Modify(GetText());
         }
 
-        public void SetFontMaterial(Material material)
+        public string GetText()
         {
-            textField.textComponent.fontMaterial = material;
-            countField.fontMaterial = material;
+            StringBuilder builder = new StringBuilder();
+            for(int i = 0; i < poolIndex; i++)
+            {
+                Debug.Assert(lines[i].gameObject.activeSelf);
+
+                builder.Append(lines[i].GetText());
+                builder.Append(newLine);
+            }
+            return builder.ToString();
+        }
+
+        public void ClearSelection()
+        {
+            selectedLine = null;
+
+            if(selectedWord != null)
+            {
+                contextualizer.gameObject.SetActive(false);
+                selectedWord.SetDeselected();
+                selectedWord = null;
+            }
         }
 
         private void Awake()
         {
-#if UNITY_EDITOR
-            if(!Application.isPlaying) return;
-#endif
-
-            countField.text = "";
-            textField.text = "";
+            lineFieldPrefab.gameObject.SetActive(false);
         }
 
-        private void RenderScript(string source)
+        private void RenderScript(string sourceCode)
         {
-            StringBuilder countBuilder = new StringBuilder();
-            StringBuilder sourceBuilder = new StringBuilder();
+            var renderUnits = RenderUnitGenerator.GenerateRender(sourceCode, scriptAsset.Script.language);
 
-            using(StringReader reader = new StringReader(source))
+            Vector2 position = Vector2.zero;
+
+            int i = 0;
+            for(; i < renderUnits.Length; i++)
             {
-                string line;
+                if(i >= lines.Count)
+                    CreateLineField();
 
-                int count = 0;
-                while((line = reader.ReadLine()) != null)
-                {
-                    countBuilder.Append(++count).Append(newLine);
+                var line = lines[i];
 
-                    sourceBuilder.Append(line).Append(newLine);
-                }
+                line.Set(i, renderUnits[i], position, out float height);
+
+                position.y -= height + lineMargin;
             }
 
-            countField.text = countBuilder.ToString();
-            textField.text = sourceBuilder.ToString();
-        }
-
-#if UNITY_EDITOR
-        private void Update()
-        {
-            if(!Application.isPlaying)
+            // Pool unused
+            poolIndex = i;
+            for(; i < lines.Count; i++)
             {
-                SetFontSize(textField.pointSize);
-                SetFontMaterial(textField.textComponent.fontMaterial);
+                lines[i].gameObject.SetActive(false);
             }
         }
-#endif
+
+        private void HandleWordSelection(AcolyteLineField line, AcolyteWordField word)
+        {
+            if(selectedWord != null)
+                selectedWord.SetDeselected();
+
+            selectedLine = line;
+            selectedWord = word;
+            word.SetSelected();
+
+            contextualizer.Set(GetContextForSelection(), HandleContextSubmit);
+            SetContextualizerPosition();
+        }
+
+        private WordEditContext GetContextForSelection()
+        {
+            WordEditContext.IEntry[] entries = new WordEditContext.IEntry[]
+            {
+                new WordEditContext.Header("Declarations"),
+                new WordEditContext.Selectable("Test 1"),
+                new WordEditContext.Selectable("Test 2"),
+
+            };
+
+            return new WordEditContext(entries);
+        }
+
+        private void HandleContextSubmit(string value)
+        {
+            for(int i = 0; i < selectedWord.RightSpaces; i++)
+                value += " ";
+            selectedWord.Text = value;
+            RenderScript(GetText());
+        }
+
+        private void SetContextualizerPosition()
+        {
+            Vector2 position = selectedWord.transform.position;
+            contextualizer.transform.position = position;
+            position = contextualizer.transform.localPosition;
+            position.y -= selectedWord.RectTransform.sizeDelta.y + lineMargin;
+            contextualizer.transform.localPosition = position;
+        }
+
+        private AcolyteLineField CreateLineField()
+        {
+            var line = Instantiate(lineFieldPrefab, lineFieldPrefab.transform.parent);
+            line.OnWordSelection += HandleWordSelection;
+            lines.Add(line);
+            return line;
+        }
     }
 }

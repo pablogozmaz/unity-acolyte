@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -5,44 +6,48 @@ using System.Collections.Generic;
 
 namespace Acolyte
 {
-    public class IfElse : Command<IfElse>
+    public sealed class IfElse : Statement<IfElse>
     {
         private readonly Stack<InstructionConditional> conditionals = new Stack<InstructionConditional>();
 
-
-        public override bool Process(string line, int instructionCount, out Instruction result)
+        protected override StatementProcess[] DefineProcesses()
         {
-            if(line.StartsWith("if"))
+            return new StatementProcess[] 
             {
-                string expression = line.Substring(2).Trim();
+                new StatementProcess("if", IfProcess, typeof(bool)),
+                new StatementProcess("endif", EndIfProcess)
+            };
+        }
 
-                var conditional = new InstructionConditional
-                {
-                    comparison = () =>
-                    {
-                        if(Language.TryGetExpression(expression, out bool value))
-                            return value;
-                        return false;
-                    }
-                };
+        private Instruction IfProcess(StatementParameters parameters) 
+        {
+            string expression = parameters.line.Substring(2).Trim();
 
-                conditionals.Push(conditional);
-                result = conditional;
-
-                return true;
-            }
-            else if(line.StartsWith("endif"))
+            // Create a conditional whose comparison is based on the value of the boolean expression
+            var conditional = new InstructionConditional
             {
-                if(conditionals.Count > 0)
+                comparison = () =>
                 {
-                    conditionals.Pop().failureJumpIndex = instructionCount;
+                    if(Language.TryGetExpression(expression, out bool value))
+                        return value;
+                    return false;
                 }
-                else
-                    throw new System.Exception("Invalid endif");
-            }
+            };
 
-            result = null;
-            return false;
+            conditionals.Push(conditional);
+            return conditional;
+        }
+
+        private Instruction EndIfProcess(StatementParameters parameters)
+        {
+            if(conditionals.Count > 0)
+            {
+                conditionals.Pop().failureJumpIndex = parameters.instructionCount;
+            }
+            else
+                throw new Exception("Invalid endif");
+
+            return null;
         }
     }
 }

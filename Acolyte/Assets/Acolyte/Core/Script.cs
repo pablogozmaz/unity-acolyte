@@ -14,7 +14,7 @@ namespace Acolyte
 
         public readonly Language language;
 
-        private readonly Lexicon lexicon;
+        private readonly Declexicon declexicon;
 
         private Executable executable;
 
@@ -24,8 +24,8 @@ namespace Acolyte
             Source = source;
             this.language = language;
 
-            // Each script contains its own lexicon instance
-            lexicon = language.CreateLexicon();
+            // Each script contains its own declexicon instance
+            declexicon = language.CreateLexicon();
 
             if(compileOnCreation)
                 Compile();
@@ -44,14 +44,14 @@ namespace Acolyte
             if(executable != null)
                 Compile();
 
-            lexicon.StartExecution(context);
+            declexicon.StartExecution(context);
             executable.Execute();
-            lexicon.CompleteExecution(callback);
+            declexicon.CompleteExecution(callback);
         }
 
         private void Compile()
         {
-            executable = Compiler.Compile(language, lexicon, Source);
+            executable = Compiler.Compile(language, declexicon, Source);
         }
     }
 }

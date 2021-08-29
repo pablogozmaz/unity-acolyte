@@ -10,10 +10,18 @@ namespace Acolyte
     {
         public abstract Script Script { get; }
 
+        protected abstract bool AutoCompileOnInitialization { get; }
+
         [SerializeField, Multiline]
         protected string source;
 
         protected Script script;
+
+        public void Modify(string newSourceCode)
+        {
+            source = newSourceCode;
+            script.Modify(newSourceCode, AutoCompileOnInitialization);
+        }
     }
 
     public abstract class ScriptAsset<T> : ScriptAsset where T : Language, new()
@@ -30,7 +38,7 @@ namespace Acolyte
                         languages.Add(typeof(T), lang);
                     }
 
-                    script = new Script(source, lang, autoCompileOnInitialization);
+                    script = new Script(source, lang, AutoCompileOnInitialization);
                 }
 
                 return script;
@@ -38,7 +46,5 @@ namespace Acolyte
         }
 
         private static readonly Dictionary<Type, Language> languages = new Dictionary<Type, Language>();
-
-        protected abstract bool autoCompileOnInitialization { get; }
     }
 }
