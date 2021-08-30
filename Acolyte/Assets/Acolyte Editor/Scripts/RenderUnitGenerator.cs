@@ -11,21 +11,21 @@ namespace Acolyte.Editor
         private readonly string sourceCode;
         private readonly Language language;
         private readonly Declexicon declexicon;
+        private readonly IStatement[] statements;
         private readonly List<RenderUnit> lineBuilder = new List<RenderUnit>();
-        private readonly string separatorStr;
 
 
-        private RenderUnitGenerator(string sourceCode, Language language)
+        private RenderUnitGenerator(string sourceCode, Language language, Declexicon declexicon)
         {
             this.sourceCode = sourceCode;
             this.language = language;
-            declexicon = language.CreateLexicon();
-            separatorStr = language.Separator.ToString();
+            this.declexicon = declexicon;
+            statements = language.GenerateStatements();
         }
 
-        public static RenderUnit[][] GenerateRender(string sourceCode, Language language)
+        public static RenderUnit[][] GenerateRender(string sourceCode, Language language, Declexicon declexicon)
         {
-            return new RenderUnitGenerator(sourceCode, language).GetScriptRenderables();
+            return new RenderUnitGenerator(sourceCode, language, declexicon).GetScriptRenderables();
         }
 
         private RenderUnit[][] GetScriptRenderables()
@@ -68,6 +68,32 @@ namespace Acolyte.Editor
 
         private void ProcessLine(string line)
         {
+            if(!ProcessStatements(line))
+            {
+                ProcessDeclexicon(line);
+            }
+        }
+
+        private bool ProcessStatements(string line)
+        {
+            if(statements == null) return false;
+
+            foreach(var statement in statements)
+            {
+                if(statement.TryGetProcess(line, out var process))
+                {
+                    AddStatementToken(process.token);
+
+                    AddValidUndefined(line.Remove(0, process.token.Length));
+
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void ProcessDeclexicon(string line)
+        {
             Word currentWord = declexicon.root;
 
             string substring;
@@ -79,8 +105,16 @@ namespace Acolyte.Editor
                 {
                     substring = line.Substring(startIndex, i - startIndex);
                     ProcessWord(substring, ref currentWord);
-                    AddSeparator();
-                    startIndex = i + 1;
+
+                    do
+                    {
+                        AddSeparator();
+                        i++;
+                    } 
+                    while(line[i] == language.Separator);
+
+                    startIndex = i;
+                    i--;
                 }
                 else if(i == line.Length - 1)
                 {
@@ -125,11 +159,15 @@ namespace Acolyte.Editor
             var ru = lineBuilder[lineBuilder.Count - 1];
             ru.content += language.Separator;
             lineBuilder[lineBuilder.Count - 1] = ru;
-            
-            /*lineBuilder.Add(new RenderUnit() 
+        }
+
+        private void AddStatementToken(string value)
+        {
+            lineBuilder.Add(new RenderUnit()
             {
-                content = separatorStr
-            });*/
+                content = value,
+                colorHex = "#51A3F5"
+            });
         }
 
         private void AddKeyword(Keyword keyword) 
@@ -156,6 +194,15 @@ namespace Acolyte.Editor
             {
                 content = value,
                 colorHex = "#CCA88E"
+            });
+        }
+
+        private void AddValidUndefined(string value)
+        {
+            lineBuilder.Add(new RenderUnit()
+            {
+                content = value,
+                colorHex = "#FFFFFF"
             });
         }
 

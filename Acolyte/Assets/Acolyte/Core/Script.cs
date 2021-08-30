@@ -14,7 +14,7 @@ namespace Acolyte
 
         public readonly Language language;
 
-        private readonly Declexicon declexicon;
+        public readonly Declexicon declexicon;
 
         private Executable executable;
 
@@ -25,7 +25,7 @@ namespace Acolyte
             this.language = language;
 
             // Each script contains its own declexicon instance
-            declexicon = language.CreateLexicon();
+            declexicon = language.CreateDeclexicon();
 
             if(compileOnCreation)
                 Compile();

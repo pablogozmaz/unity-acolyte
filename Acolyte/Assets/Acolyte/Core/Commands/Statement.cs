@@ -43,6 +43,8 @@ namespace Acolyte
 
     public abstract class Statement<T> : IStatement where T : Statement<T>, new()
     {
+        public static Func<T> Factory => () => { return new T(); };
+
         public Language Language
         {
             get { return language; }
@@ -59,19 +61,19 @@ namespace Acolyte
 
         private Language language;
 
-        public static Func<T> Factory => () => { return new T(); };
 
         public Statement()
         {
-            foreach(var process in DefineProcesses())
-                processes.Add(process.token, process);
+            PopulateProcessesDictionary();
         }
 
         public bool TryGetProcess(string line, out StatementProcess process)
         {
             foreach(var valuePair in processes)
             {
-                if(line.StartsWith(valuePair.Key))
+                string token = valuePair.Key.Trim();
+
+                if(line.StartsWith(token))
                 {
                     process = valuePair.Value;
                     return true;
@@ -80,6 +82,12 @@ namespace Acolyte
 
             process = default;
             return false;
+        }
+
+        private void PopulateProcessesDictionary() 
+        {
+            foreach(var process in DefineProcesses())
+                processes.Add(process.token, process);
         }
 
         // Require statements to define all their processes

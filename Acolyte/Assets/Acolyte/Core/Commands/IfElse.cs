@@ -12,9 +12,9 @@ namespace Acolyte
 
         protected override StatementProcess[] DefineProcesses()
         {
-            return new StatementProcess[] 
+            return new StatementProcess[]
             {
-                new StatementProcess("if", IfProcess, typeof(bool)),
+                new StatementProcess("if ", IfProcess, typeof(bool)),
                 new StatementProcess("endif", EndIfProcess)
             };
         }

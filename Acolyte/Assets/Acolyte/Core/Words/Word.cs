@@ -14,9 +14,15 @@ namespace Acolyte
         public Identifier SubsequentIdentifier { get; private set; }
         public Literal SubsequentLiteral { get; private set; }
 
+        public int SubsequentKeywordsCount => subsequentKeywords != null ? subsequentKeywords.Count : 0;
+        public int ToleratedCount => tolerated != null ? tolerated.Count : 0;
+
+        public IEnumerable<string> SubsequentKeywordTokens => subsequentKeywords.Keys;
+        public IEnumerable<string> Tolerated => tolerated;
+
         private Dictionary<string, Keyword> subsequentKeywords;
 
-        private static HashSet<string> tolerated;
+        private List<string> tolerated;
 
 
         public bool TryGetSubsequentKeyword(string text, out Keyword keyword)
@@ -70,7 +76,7 @@ namespace Acolyte
         public void Tolerate(string word)
         {
             if(tolerated == null)
-                tolerated = new HashSet<string>();
+                tolerated = new List<string>();
             else if(tolerated.Contains(word))
                 return;
             tolerated.Add(word);

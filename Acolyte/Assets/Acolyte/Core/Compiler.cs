@@ -24,7 +24,7 @@ namespace Acolyte
             this.declexicon = declexicon;
             this.source = source;
 
-            statements = language.GenerateCommands();
+            statements = language.GenerateStatements();
         }
 
         public static Executable Compile(Language language, Declexicon declexicon, string source)

@@ -14,15 +14,15 @@ namespace TFM.DynamicProcedures
         {
             IsCaseSensitive = false;
 
-            AddCommandFactory(IfElse.Factory);
+            AddStatementFactory(IfElse.Factory);
 
             AddExpression("profile is expert", IsProfileExpert);
         }
 
         // Define the desired scope
-        public override Declexicon CreateLexicon()
+        public override Declexicon CreateDeclexicon()
         {
-            return new StepScriptLexicon();
+            return new StepScriptDeclexicon();
         }
 
         private bool IsProfileExpert() { return true; }

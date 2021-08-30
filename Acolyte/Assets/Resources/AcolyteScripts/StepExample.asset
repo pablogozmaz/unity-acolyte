@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   source: 'if profile is expert
 
-    Interact with AssemblyParts1 using herramienta.
+    interact with AssemblyParts1 using herramienta.
 
     endif'

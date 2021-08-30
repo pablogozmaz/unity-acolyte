@@ -15,9 +15,12 @@ namespace Acolyte.Editor
         private TMP_Text textField;
 
 
-        public void SetOption(string option) 
+        public void SetOption(string option)
         {
             textField.text = option;
+
+            if(!gameObject.activeSelf)
+                gameObject.SetActive(true);
         }
 
         public void Submit()

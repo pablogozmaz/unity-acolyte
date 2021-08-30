@@ -10,7 +10,7 @@ namespace Acolyte
         public abstract string Name { get; }
 
         public string Comment { get; protected set; } = "//";
-        public char Separator { get; protected set; } = ' ';
+        public char Separator => ' ';
         public bool IsCaseSensitive { get; protected set; } = true;
 
         /// <summary>
@@ -18,7 +18,7 @@ namespace Acolyte
         /// </summary>
         private static readonly Dictionary<string, Language> languages = new Dictionary<string, Language>();
 
-        private List<Func<IStatement>> commandFactories;
+        private List<Func<IStatement>> statementFactories;
 
         private Dictionary<Type, IExpression> expressions;
 
@@ -35,7 +35,7 @@ namespace Acolyte
         /// <summary>
         /// Creates a scope instance whose type is the required type for the language.
         /// </summary>
-        public abstract Declexicon CreateLexicon();
+        public abstract Declexicon CreateDeclexicon();
 
         public void AddExpression<T>(string expression, Func<T> func) where T : struct 
         {
@@ -71,28 +71,28 @@ namespace Acolyte
         }
 
         /// <summary>
-        /// Add a command factory method that will provide a Command instance to the compiler to process.
+        /// Add a Statement factory method that will provide a Statement instance to the compiler to process.
         /// </summary>
-        public void AddCommandFactory(Func<IStatement> commandFactory)
+        public void AddStatementFactory(Func<IStatement> statementFactory)
         {
-            if(commandFactories == null)
-                commandFactories = new List<Func<IStatement>>();
+            if(statementFactories == null)
+                statementFactories = new List<Func<IStatement>>();
 
-            commandFactories.Add(commandFactory);
+            statementFactories.Add(statementFactory);
         }
 
         /// <summary>
-        /// Returns an array of Command instances generated from command factories added to this language.
+        /// Returns an array of Statement instances generated from the factories added to this language.
         /// </summary>
-        public IStatement[] GenerateCommands() 
+        public IStatement[] GenerateStatements() 
         {
-            if(commandFactories != null)
+            if(statementFactories != null)
             {
-                IStatement[] array = new IStatement[commandFactories.Count];
+                IStatement[] array = new IStatement[statementFactories.Count];
 
-                for(int i = 0; i < commandFactories.Count; i++)
+                for(int i = 0; i < statementFactories.Count; i++)
                 {
-                    array[i] = commandFactories[i].Invoke();
+                    array[i] = statementFactories[i].Invoke();
                     array[i].Language = this;
                 }
 

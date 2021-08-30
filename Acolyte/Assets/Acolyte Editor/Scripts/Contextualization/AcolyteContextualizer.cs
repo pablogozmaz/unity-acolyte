@@ -15,9 +15,13 @@ namespace Acolyte.Editor
         private RectTransform rectTransform;
 
         [SerializeField]
+        private AcolyteContextHeader headerPrefab;
+
+        [SerializeField]
         private AcolyteContextSelectable selectablePrefab;
 
-        private List<AcolyteContextSelectable> selectables = new List<AcolyteContextSelectable>();
+        private readonly List<AcolyteContextHeader> headers = new List<AcolyteContextHeader>();
+        private readonly List<AcolyteContextSelectable> selectables = new List<AcolyteContextSelectable>();
 
         private Action<string> submitCallback;
 
@@ -29,26 +33,34 @@ namespace Acolyte.Editor
 
             this.submitCallback = submitCallback;
 
+            int headerIndex = 0;
             int selectableIndex = 0;
             foreach(var entry in editContext.Entries)
             {
-                if(entry is WordEditContext.Selectable selectable)
+                if(entry is WordEditContext.Header header)
+                {
+                    if(headerIndex >= headers.Count)
+                        CreateHeader();
+
+                    headers[headerIndex].SetHeader(header.Text);
+                    headerIndex++;
+                }
+                else if(entry is WordEditContext.Selectable selectable)
                 {
                     if(selectableIndex >= selectables.Count)
                         CreateSelectable();
 
-                    var selectableObj = selectables[selectableIndex];
-
-                    if(!selectableObj.gameObject.activeSelf)
-                        selectableObj.gameObject.SetActive(true);
-
-                    selectableObj.SetOption(selectable.Text);
-
+                    selectables[selectableIndex].SetOption(selectable.Text);
                     selectableIndex++;
                 }
             }
 
             // Pool
+            for(; headerIndex < headers.Count; headerIndex++)
+            {
+                if(headers[headerIndex].gameObject.activeSelf)
+                    headers[headerIndex].gameObject.SetActive(false);
+            }
             for(; selectableIndex < selectables.Count; selectableIndex++)
             {
                 if(selectables[selectableIndex].gameObject.activeSelf)
@@ -58,6 +70,7 @@ namespace Acolyte.Editor
 
         private void Awake() 
         {
+            headerPrefab.gameObject.SetActive(false);
             selectablePrefab.gameObject.SetActive(false);
         }
 
@@ -68,16 +81,22 @@ namespace Acolyte.Editor
 
         private AcolyteContextSelectable CreateSelectable() 
         {
-            var option = Instantiate(selectablePrefab, selectablePrefab.transform.parent);
-            option.OnSubmit += HandleOptionSubmit;
-            selectables.Add(option);
-            return option;
+            var selectable = Instantiate(selectablePrefab, selectablePrefab.transform.parent);
+            selectable.OnSubmit += HandleOptionSubmit;
+            selectables.Add(selectable);
+            return selectable;
+        }
+
+        private AcolyteContextHeader CreateHeader()
+        {
+            var header = Instantiate(headerPrefab, headerPrefab.transform.parent);
+            headers.Add(header);
+            return header;
         }
 
         private void HandleOptionSubmit(string value)
         {
             submitCallback.Invoke(value);
-            gameObject.SetActive(false);
         }
 
         private void ProcessDefaultInput() 
@@ -85,17 +104,7 @@ namespace Acolyte.Editor
             // Cancel selection
             if(Input.GetKeyDown(KeyCode.Escape))
             {
-
-            }
-            // Try delete word
-            else if(Input.GetKeyDown(KeyCode.Delete))
-            {
-
-            }
-            // Next?
-            else if(Input.GetKeyDown(KeyCode.Space))
-            {
-
+                gameObject.SetActive(false);
             }
         }
 
