@@ -41,7 +41,7 @@ namespace Acolyte
 
         public void Execute<T>(object context, Action<T> callback) where T : class
         {
-            if(executable != null)
+            if(executable == null)
                 Compile();
 
             declexicon.StartExecution(context);

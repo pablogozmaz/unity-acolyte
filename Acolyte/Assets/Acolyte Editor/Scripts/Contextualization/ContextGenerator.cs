@@ -20,7 +20,7 @@ namespace Acolyte.Editor
         private readonly int wordIndex;
         private readonly Language language;
         private readonly Declexicon declexicon;
-        private readonly IStatement[] statements;
+        private readonly Statement[] statements;
 
         private readonly List<WordEditContext.IEntry> entries = new List<WordEditContext.IEntry>();
 
@@ -76,7 +76,7 @@ namespace Acolyte.Editor
 
         private void ProcessDeclexicon()
         {
-            Word currentWord = declexicon.root;
+            Declexeme currentWord = declexicon.root;
             HashSet<string> toleratedCache = new HashSet<string>();
 
             for(int i = 0; i < wordIndex; i++)
@@ -91,7 +91,7 @@ namespace Acolyte.Editor
             AddAvailableDeclarations(currentWord);
         }
 
-        private bool ProcessWord(string word, ref Word currentWord, HashSet<string> toleratedCache)
+        private bool ProcessWord(string word, ref Declexeme currentWord, HashSet<string> toleratedCache)
         {
             if(currentWord.TryGetSubsequentKeyword(language.IsCaseSensitive ? word : word.ToLowerInvariant(), out Keyword keyword))
             {
@@ -120,7 +120,7 @@ namespace Acolyte.Editor
             return false;
         }
 
-        private void AddAvailableDeclarations(Word word)
+        private void AddAvailableDeclarations(Declexeme word)
         {
             int keywordCount = word.SubsequentKeywordsCount;
             if(keywordCount > 0)

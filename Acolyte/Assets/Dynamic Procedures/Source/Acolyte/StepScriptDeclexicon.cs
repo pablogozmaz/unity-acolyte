@@ -38,33 +38,31 @@ namespace TFM.DynamicProcedures
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Initialize()
         {
-            WordsRequested += GenerateMainWordTree;
+            AddDeclexemeFactory((StepScriptDeclexicon declexicon) => 
+            {
+                return declexicon.GenerateMainWordTree();
+            });
         }
 
-        private static Word[] GenerateMainWordTree(Declexicon declexicon) 
-        {
-            return declexicon is StepScriptDeclexicon stepScriptDeclexicon ? stepScriptDeclexicon.GenerateMainWordTree() : null;
-        }
-
-        private Word[] GenerateMainWordTree()
+        private Declexeme[] GenerateMainWordTree()
         {
             Keyword place = new Keyword("place", CreateActionTypePlace);
             Keyword interact = new Keyword("interact", CreateActionTypeInteract);
 
-            var selectSingle = new UnityIdentifier<GameObject[]>(SetActionTarget, ()=> { return objectsContainer; });
+            var selectObject = new UnityIdentifier<GameObject[]>(SetActionTarget, ()=> { return objectsContainer; });
 
             var toolPrefix = new Keyword("using");
             var selectTool = new Literal(SetTool);
 
-            place.Then(selectSingle);
-            interact.Then(selectSingle);
+            place.Then(selectObject);
+            interact.Then(selectObject);
             interact.Tolerate("with");
 
-            selectSingle.Then(toolPrefix);
+            selectObject.Then(toolPrefix);
 
             toolPrefix.Then(selectTool);
 
-            return new Word[] { place, interact };
+            return new Declexeme[] { place, interact };
         }
 
         private T GetCurrentAction<T>() where T : StepAction

@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using Acolyte;
 
 
@@ -14,7 +13,7 @@ namespace TFM.DynamicProcedures
         {
             IsCaseSensitive = false;
 
-            AddStatementFactory(IfElse.Factory);
+            AddStatement<IfElse>();
 
             AddExpression("profile is expert", IsProfileExpert);
         }

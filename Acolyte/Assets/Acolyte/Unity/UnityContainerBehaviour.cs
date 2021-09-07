@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Acolyte
 {
     /// <summary>
-    /// Serializes identified unity objects to be obtained from a UnityIdentifier word.
+    /// Serializes objects identified with a string.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class UnityContainerBehaviour<T> : MonoBehaviour where T : class

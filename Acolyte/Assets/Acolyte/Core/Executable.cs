@@ -7,7 +7,7 @@ namespace Acolyte
     /// <summary>
     /// Array of instructions that can be executed.
     /// </summary>
-    public class Executable
+    public sealed class Executable
     {
         private readonly Instruction[] instructions;
 

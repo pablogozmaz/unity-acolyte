@@ -1,8 +1,10 @@
 using System;
 using System.Text;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using TMPro;
 
 
@@ -15,7 +17,7 @@ namespace Acolyte.Editor
     {
         public event Action<ScriptAsset> OnScriptSet;
 
-        public const string newLine = "\n";
+        public const char newLine = '\n';
 
         public ScriptAsset ScriptAsset { get; private set; }
 
@@ -37,6 +39,13 @@ namespace Acolyte.Editor
         [SerializeField]
         private AcolyteContextualizer contextualizer;
 
+        [Space(8)]
+        [SerializeField]
+        private UnityEvent OnHasScript;
+
+        [SerializeField]
+        private UnityEvent OnHasNoScript;
+
         private AcolyteWordSelector wordSelector = new AcolyteWordSelector();
 
         private readonly List<AcolyteWordRenderer> wordRenderers = new List<AcolyteWordRenderer>();
@@ -49,9 +58,16 @@ namespace Acolyte.Editor
                 return;
 
             ScriptAsset = scriptAsset;
-            inputField.text = scriptAsset.Script.Source;
 
-            OnScriptSet?.Invoke(scriptAsset);
+            if(ScriptAsset != null)
+            {
+                inputField.text = scriptAsset.Script.Source;
+
+                OnScriptSet?.Invoke(scriptAsset);
+                OnHasScript.Invoke();
+            }
+            else
+                OnHasNoScript.Invoke();
         }
 
         public void Save()
@@ -64,6 +80,8 @@ namespace Acolyte.Editor
 
         private void Awake()
         {
+            OnHasNoScript.Invoke();
+
             wordRendererPrefab.gameObject.SetActive(false);
 
             countField.text = "";
@@ -71,6 +89,9 @@ namespace Acolyte.Editor
 
             inputField.onValueChanged.AddListener((string value) => 
             {
+                if(ScriptAsset == null)
+                    return;
+
                 RenderScript(value);
             });
 
@@ -97,9 +118,11 @@ namespace Acolyte.Editor
         private void RenderScript(string sourceCode)
         {
             var renderUnits = RenderUnitGenerator.GenerateRender(sourceCode, Script.language, Script.declexicon);
-            SetCountField(renderUnits.Length);
             StartCoroutine(RenderCoroutine(renderUnits));
             inputField.text = sourceCode;
+
+            int lineCount = sourceCode.Count(c => c == newLine) + 1;
+            SetCountField(lineCount > 0 ? lineCount : 1);
         }
 
         private void SetCountField(int lineCount)
@@ -107,7 +130,7 @@ namespace Acolyte.Editor
             StringBuilder sb = new StringBuilder();
             for(int i = 1; i <= lineCount; i++)
             {
-                sb.Append(i.ToString()).Append("\n");
+                sb.Append(i.ToString()).Append(newLine);
             }
             countField.text = sb.ToString();
         }
@@ -131,55 +154,55 @@ namespace Acolyte.Editor
                 int wordIndexInLine = 0;
 
                 //Ignore out of bounds
-                if(lineIndex >= renderUnits.Length || wordIndexInLine >= renderUnits[lineIndex].Length )
-                    continue;
-
-                var renderUnit = renderUnits[lineIndex][wordIndexInLine];
-
-                int charIndexMin = lineInfo.firstCharacterIndex;
-                int charIndexMax;
-                int wordProgress = 0;
-                for(int i = lineInfo.firstCharacterIndex; i < lineInfo.lastCharacterIndex; i++)
+                if(lineIndex < renderUnits.Length && wordIndexInLine < renderUnits[lineIndex].Length)
                 {
-                    var charInfo = textInfo.characterInfo[i];
+                    var renderUnit = renderUnits[lineIndex][wordIndexInLine];
 
-                    if(charInfo.character == renderUnit.content[wordProgress])
+                    int charIndexMin = lineInfo.firstCharacterIndex;
+                    int charIndexMax;
+                    int wordProgress = 0;
+                    for(int i = lineInfo.firstCharacterIndex; i < lineInfo.lastCharacterIndex; i++)
                     {
-                        wordProgress++;
-                        wordRectSize.x += charInfo.xAdvance - charInfo.origin;
+                        var charInfo = textInfo.characterInfo[i];
 
-                        if(wordProgress == renderUnit.content.Length)
+                        if(charInfo.character == renderUnit.content[wordProgress])
                         {
-                            wordProgress = 0;
-                            charIndexMax = i;
+                            wordProgress++;
+                            wordRectSize.x += charInfo.xAdvance - charInfo.origin;
 
-                            if(totalWordCount >= wordRenderers.Count)
-                                CreateWordRenderer();
-
-                            WordRenderParameters parameters = new WordRenderParameters() 
+                            if(wordProgress == renderUnit.content.Length)
                             {
-                                renderUnit = renderUnit,
-                                size = wordRectSize,
-                                localPosition = wordPosition,
-                                lineIndex = lineIndex,
-                                wordIndexInLine = wordIndexInLine,
-                                charIndexMin = charIndexMin,
-                                charIndexMax = charIndexMax
-                            };
+                                wordProgress = 0;
+                                charIndexMax = i;
 
-                            wordRenderers[totalWordCount].Set(parameters);
-                            totalWordCount++;
+                                if(totalWordCount >= wordRenderers.Count)
+                                    CreateWordRenderer();
 
-                            wordPosition.x += wordRectSize.x;
-                            wordRectSize.x = 0;
+                                WordRenderParameters parameters = new WordRenderParameters()
+                                {
+                                    renderUnit = renderUnit,
+                                    size = wordRectSize,
+                                    localPosition = wordPosition,
+                                    lineIndex = lineIndex,
+                                    wordIndexInLine = wordIndexInLine,
+                                    charIndexMin = charIndexMin,
+                                    charIndexMax = charIndexMax
+                                };
 
-                            wordIndexInLine++;
-                            charIndexMin = i + 1;
+                                wordRenderers[totalWordCount].Set(parameters);
+                                totalWordCount++;
 
-                            if(wordIndexInLine == renderUnits[lineIndex].Length)
-                                break;
+                                wordPosition.x += wordRectSize.x;
+                                wordRectSize.x = 0;
 
-                            renderUnit = renderUnits[lineIndex][wordIndexInLine];
+                                wordIndexInLine++;
+                                charIndexMin = i + 1;
+
+                                if(wordIndexInLine == renderUnits[lineIndex].Length)
+                                    break;
+
+                                renderUnit = renderUnits[lineIndex][wordIndexInLine];
+                            }
                         }
                     }
                 }
@@ -243,6 +266,7 @@ namespace Acolyte.Editor
 
             string text = wordSelector.Selection.Text;
 
+            // Add spaces from left to right
             for(int i = 0; i < text.Length; i++)
             {
                 if(text[i] != ' ') break;
@@ -251,6 +275,8 @@ namespace Acolyte.Editor
 
             sb.Append(value);
 
+
+            // Add spaces from right to left
             for(int i = text.Length - 1; i >= 0; i--)
             {
                 if(text[i] != ' ') break;

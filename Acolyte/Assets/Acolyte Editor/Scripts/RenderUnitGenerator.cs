@@ -11,8 +11,10 @@ namespace Acolyte.Editor
         private readonly string sourceCode;
         private readonly Language language;
         private readonly Declexicon declexicon;
-        private readonly IStatement[] statements;
+        private readonly Statement[] statements;
         private readonly List<RenderUnit> lineBuilder = new List<RenderUnit>();
+
+        private RenderConfiguration RenderConfiguration { get { return RenderConfiguration.Current; } }
 
 
         private RenderUnitGenerator(string sourceCode, Language language, Declexicon declexicon)
@@ -58,7 +60,7 @@ namespace Acolyte.Editor
                 lineBuilder.Add(new RenderUnit()
                 {
                     content = line,
-                    colorHex = "#A3A3A3"
+                    colorHex = RenderConfiguration.commentColor
                 });
                 return true;
             }
@@ -94,7 +96,7 @@ namespace Acolyte.Editor
 
         private void ProcessDeclexicon(string line)
         {
-            Word currentWord = declexicon.root;
+            Declexeme currentWord = declexicon.root;
 
             string substring;
             int startIndex = 0;
@@ -124,29 +126,29 @@ namespace Acolyte.Editor
             }
         }
 
-        private void ProcessWord(string word, ref Word currentWord)
+        private void ProcessWord(string word, ref Declexeme current)
         {
-            if(currentWord.TryGetSubsequentKeyword(language.IsCaseSensitive ? word : word.ToLowerInvariant(), out Keyword keyword))
+            if(current.TryGetSubsequentKeyword(language.IsCaseSensitive ? word : word.ToLowerInvariant(), out Keyword keyword))
             {
                 AddKeyword(keyword);
-                currentWord = keyword;
+                current = keyword;
             }
             // 2 - Tolerated word
-            else if(currentWord.IsTolerated(word))
+            else if(current.IsTolerated(word))
             {
                 AddTolerated(word);
             }
             // 3 - Identifier
-            else if(currentWord.SubsequentIdentifier != null)
+            else if(current.SubsequentIdentifier != null)
             {
-                AddIdentifier(currentWord.SubsequentIdentifier, word);
-                currentWord = currentWord.SubsequentIdentifier;
+                AddIdentifier(current.SubsequentIdentifier, word);
+                current = current.SubsequentIdentifier;
             }
             // 4 - Literal
-            else if(currentWord.SubsequentLiteral != null)
+            else if(current.SubsequentLiteral != null)
             {
-                AddLiteral(currentWord.SubsequentLiteral, word);
-                currentWord = currentWord.SubsequentLiteral;
+                AddLiteral(current.SubsequentLiteral, word);
+                current = current.SubsequentLiteral;
             }
             else
             {
@@ -166,7 +168,7 @@ namespace Acolyte.Editor
             lineBuilder.Add(new RenderUnit()
             {
                 content = value,
-                colorHex = "#51A3F5"
+                colorHex = RenderConfiguration.statementColor
             });
         }
 
@@ -174,8 +176,8 @@ namespace Acolyte.Editor
         {
             lineBuilder.Add(new RenderUnit()
             {
-                content = keyword.text,
-                colorHex = "#51A3F5"
+                content = keyword.token,
+                colorHex = RenderConfiguration.keywordColor
             });
         }
 
@@ -184,7 +186,7 @@ namespace Acolyte.Editor
             lineBuilder.Add(new RenderUnit()
             {
                 content = value,
-                colorHex = "#CCA88E"
+                colorHex = RenderConfiguration.identifierColor
             });
         }
 
@@ -193,7 +195,7 @@ namespace Acolyte.Editor
             lineBuilder.Add(new RenderUnit()
             {
                 content = value,
-                colorHex = "#CCA88E"
+                colorHex = RenderConfiguration.literalColor
             });
         }
 
@@ -202,7 +204,7 @@ namespace Acolyte.Editor
             lineBuilder.Add(new RenderUnit()
             {
                 content = value,
-                colorHex = "#FFFFFF"
+                colorHex = RenderConfiguration.validUndefinedColor
             });
         }
 
@@ -211,7 +213,7 @@ namespace Acolyte.Editor
             lineBuilder.Add(new RenderUnit()
             {
                 content = value,
-                colorHex = "#FFFFFF"
+                colorHex = RenderConfiguration.toleratedColor
             });
         }
 
@@ -220,7 +222,7 @@ namespace Acolyte.Editor
             lineBuilder.Add(new RenderUnit()
             {
                 content = value,
-                colorHex = "#CC1F37"
+                colorHex = RenderConfiguration.unrecognizedColor
             });
         }
     }

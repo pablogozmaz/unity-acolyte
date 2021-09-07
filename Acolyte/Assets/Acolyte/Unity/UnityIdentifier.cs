@@ -20,9 +20,9 @@ namespace Acolyte
             var container = containerProvider.Invoke();
 
             if(container.TryGetObject(value, out T obj))
-            {
                 invocation.Invoke(obj);
-            }
+            else
+                invocation.Invoke(null);
         }
     }
 }

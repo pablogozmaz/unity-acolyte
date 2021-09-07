@@ -10,30 +10,16 @@ namespace Acolyte
         public abstract string Name { get; }
 
         public string Comment { get; protected set; } = "//";
-        public char Separator => ' ';
+        public char Separator { get; protected set; } = ' ';
         public bool IsCaseSensitive { get; protected set; } = true;
 
-        /// <summary>
-        /// Collection of all existing languages.
-        /// </summary>
-        private static readonly Dictionary<string, Language> languages = new Dictionary<string, Language>();
-
-        private List<Func<IStatement>> statementFactories;
+        private List<Type> statementTypes;
 
         private Dictionary<Type, IExpression> expressions;
 
 
-        public Language()
-        {
-            languages.Add(Name, this);
-        }
-
-        public static IEnumerable<Language> GetAllLanguages() => languages.Values;
-        
-        public static bool TryGetLanguage(string name, out Language language) => languages.TryGetValue(name, out language);
-
         /// <summary>
-        /// Creates a scope instance whose type is the required type for the language.
+        /// Creates a declexicon instance whose type is the required type for the language.
         /// </summary>
         public abstract Declexicon CreateDeclexicon();
 
@@ -70,29 +56,29 @@ namespace Acolyte
             return null;
         }
 
-        /// <summary>
-        /// Add a Statement factory method that will provide a Statement instance to the compiler to process.
-        /// </summary>
-        public void AddStatementFactory(Func<IStatement> statementFactory)
+        public void AddStatement<T>() where T : Statement
         {
-            if(statementFactories == null)
-                statementFactories = new List<Func<IStatement>>();
+            if(statementTypes == null)
+                statementTypes = new List<Type>();
 
-            statementFactories.Add(statementFactory);
+            var type = typeof(T);
+
+            if(!statementTypes.Contains(type))
+                statementTypes.Add(type);
         }
 
         /// <summary>
-        /// Returns an array of Statement instances generated from the factories added to this language.
+        /// Returns an array of Statement instances generated from registered types.
         /// </summary>
-        public IStatement[] GenerateStatements() 
+        public Statement[] GenerateStatements() 
         {
-            if(statementFactories != null)
+            if(statementTypes != null)
             {
-                IStatement[] array = new IStatement[statementFactories.Count];
+                Statement[] array = new Statement[statementTypes.Count];
 
-                for(int i = 0; i < statementFactories.Count; i++)
+                for(int i = 0; i < statementTypes.Count; i++)
                 {
-                    array[i] = statementFactories[i].Invoke();
+                    array[i] = Activator.CreateInstance(statementTypes[i]) as Statement;
                     array[i].Language = this;
                 }
 

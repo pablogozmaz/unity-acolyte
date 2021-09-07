@@ -13,5 +13,22 @@ namespace Acolyte.Editor
 
         [SerializeField]
         private TMP_FontAsset fontAsset;
+
+        [SerializeField]
+        private RenderConfiguration renderConfiguration;
+
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void Initialize() 
+        {
+            var array = Resources.LoadAll<AcolyteEditorConfiguration>("");
+
+            if(array.Length == 0)
+                return;
+
+            var editorConfig = array[0];
+
+            RenderConfiguration.SetCurrent(editorConfig.renderConfiguration);
+        }
     }
 }

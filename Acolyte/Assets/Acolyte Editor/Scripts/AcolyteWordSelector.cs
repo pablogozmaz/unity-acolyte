@@ -59,14 +59,12 @@ namespace Acolyte.Editor
                     if(wordRenderer.IsCharIndexInRange(inputField.caretPosition) || IsLastWordInTargetLine())
                     {
                         Select(wordRenderer, lineBuilder.ToString());
-                        break;
+                        return;
                     }
                 }
             }
-            else
-            {
-                ClearSelection();
-            }
+
+            ClearSelection();
         }
 
         private void Select(AcolyteWordRenderer wordRenderer, string line)

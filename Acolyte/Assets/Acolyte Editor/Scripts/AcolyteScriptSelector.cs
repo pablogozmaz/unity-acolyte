@@ -19,6 +19,7 @@ namespace Acolyte.Editor
         private TMP_Dropdown dropdown;
 
 
+
         public void SetAvailableScripts(ScriptAsset[] scripts)
         {
             dropdown.ClearOptions();
