@@ -31,25 +31,26 @@ namespace Acolyte
         }
     }
 
-    public sealed class InstructionConditional : Instruction
+    public class InstructionJump : Instruction
     {
-        public struct Data
-        {
-            public Func<bool> comparison;
-            public int failureJumpIndex;
-        }
+        public int jumpIndex;
 
-        // public List<Data> data = new List<Data>();
-
-        public Func<bool> comparison;
-        public int failureJumpIndex;
-
-        public InstructionConditional() { }
 
         public override void Execute(ref int index)
         {
-            if(!comparison.Invoke())
-                index = failureJumpIndex;
+            index = jumpIndex;
+        }
+    }
+
+    public sealed class InstructionConditional : InstructionJump
+    {
+        public Func<bool> comparison;
+
+
+        public override void Execute(ref int index)
+        {
+            if(comparison.Invoke())
+                index = jumpIndex;
         }
     }
 }

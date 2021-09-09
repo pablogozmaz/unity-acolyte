@@ -6,31 +6,46 @@ using System.Collections.Generic;
 
 namespace Acolyte
 {
-    public sealed class IfElse : Statement
+    /// <summary>
+    /// Statement processor for If/Else statements.
+    /// </summary>
+    public sealed class IfElse : StatementProcessor
     {
-        private readonly Stack<InstructionConditional> instructions = new Stack<InstructionConditional>();
+        private readonly Stack<InstructionJump> instructions = new Stack<InstructionJump>();
 
-        protected override StatementProcess[] DefineProcesses()
+        private readonly string ifToken = "if ";
+        private readonly string elseToken = "else";
+        private readonly string endifToken = "endif";
+
+
+        public IfElse(string ifToken, string elseToken, string endifToken)
         {
-            return new StatementProcess[]
+            this.ifToken = ifToken.Trim() + " ";
+            this.elseToken = elseToken;
+            this.endifToken = endifToken;
+        }
+
+        protected override Statement[] DefineStatements()
+        {
+            return new Statement[]
             {
-                new StatementProcess("if ", IfProcess, typeof(bool)),
-                new StatementProcess("endif", EndIfProcess)
+                new Statement(ifToken, IfFunction, typeof(bool)),
+                new Statement(elseToken, ElseFunction),
+                new Statement(endifToken, EndIfFunction),
             };
         }
 
-        private Instruction IfProcess(StatementParameters parameters) 
+        private Instruction IfFunction(StatementParameters parameters) 
         {
-            string expression = parameters.line.Substring(2).Trim();
+            string expression = parameters.line.Substring(ifToken.Length).Trim();
 
             // Create a conditional whose comparison is based on the value of the boolean expression
             var conditional = new InstructionConditional
             {
                 comparison = () =>
                 {
-                    if(Language.TryGetExpression(expression, out bool value))
-                        return value;
-                    return false;
+                    Language.TryGetExpression(expression, out bool value);
+                    return !value; // Jump when comparison is false
                 }
             };
 
@@ -38,16 +53,30 @@ namespace Acolyte
             return conditional;
         }
 
-        private Instruction EndIfProcess(StatementParameters parameters)
+        private Instruction EndIfFunction(StatementParameters parameters)
         {
             if(instructions.Count > 0)
-            {
-                instructions.Pop().failureJumpIndex = parameters.instructionCount;
-            }
+                instructions.Pop().jumpIndex = parameters.instructionCount - 1;
             else
                 throw new Exception("Invalid endif");
 
             return null;
+        }
+
+        private Instruction ElseFunction(StatementParameters parameters)
+        {
+            if(instructions.Count > 0)
+            {
+                var lastInstruction = instructions.Pop();
+                lastInstruction.jumpIndex = parameters.instructionCount;
+
+                var jump = new InstructionJump();
+
+                instructions.Push(jump);
+                return jump;
+            }
+            else
+                throw new Exception("Invalid else");
         }
     }
 }

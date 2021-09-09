@@ -12,6 +12,7 @@ namespace TFM.DynamicProcedures
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Properties))]
     [AddComponentMenu("Dynamic Procedures/Entity")]
+    [Serializable]
     public class Entity : MonoBehaviour
     {
         public event Action OnDestruction;

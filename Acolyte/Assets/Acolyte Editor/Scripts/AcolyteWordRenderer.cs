@@ -23,6 +23,7 @@ namespace Acolyte.Editor
     {
         public RectTransform RectTransform => rectTransform;
 
+        public TextMeshProUGUI TextField => textField;
         public string Text => textField.text;
 
         public int LineIndex { get; private set; }
@@ -75,11 +76,6 @@ namespace Acolyte.Editor
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-        }
-
-        public bool IsCharIndexInRange(int charIndex)
-        {
-            return charIndex >= CharIndexMin && charIndex <= CharIndexMax;
         }
 
         private void OnValidate()

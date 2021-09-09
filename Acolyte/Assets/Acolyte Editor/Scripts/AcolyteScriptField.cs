@@ -39,6 +39,9 @@ namespace Acolyte.Editor
         [SerializeField]
         private AcolyteContextualizer contextualizer;
 
+        [SerializeField]
+        private RectTransform selectionHighlight;
+
         [Space(8)]
         [SerializeField]
         private UnityEvent OnHasScript;
@@ -46,7 +49,7 @@ namespace Acolyte.Editor
         [SerializeField]
         private UnityEvent OnHasNoScript;
 
-        private AcolyteWordSelector wordSelector = new AcolyteWordSelector();
+        private AcolyteWordSelector wordSelector;
 
         private readonly List<AcolyteWordRenderer> wordRenderers = new List<AcolyteWordRenderer>();
         private int renderersPoolIndex;
@@ -72,6 +75,9 @@ namespace Acolyte.Editor
 
         public void Save()
         {
+            if(inputField.text == ScriptAsset.Script.Source)
+                return;
+
             ScriptAsset.Modify(inputField.text);
         }
         
@@ -83,6 +89,7 @@ namespace Acolyte.Editor
             OnHasNoScript.Invoke();
 
             wordRendererPrefab.gameObject.SetActive(false);
+            selectionHighlight.gameObject.SetActive(false);
 
             countField.text = "";
             inputField.text = "";
@@ -95,7 +102,15 @@ namespace Acolyte.Editor
                 RenderScript(value);
             });
 
+            InputField.onSelect.AddListener((string ignore) => 
+            {
+                SetContextualizer(true);
+            });
+
+            wordSelector = new AcolyteWordSelector(this, inputField);
+
             wordSelector.OnSelection += HandleWordSelection;
+            contextualizer.OnSubmit += HandleContextSubmit;
         }
 
         private void OnDestroy()
@@ -103,16 +118,12 @@ namespace Acolyte.Editor
             OnScriptSet = null;
 
             wordSelector.OnSelection -= HandleWordSelection;
+            contextualizer.OnSubmit -= HandleContextSubmit;
         }
 
         private void Update()
         {
-            AcolyteWordRenderer[] array = new AcolyteWordRenderer[renderersPoolIndex];
-            for(int i = 0; i < array.Length; i++)
-            {
-                array[i] = wordRenderers[i];
-            }
-            wordSelector.Update(inputField, array);
+            wordSelector.Update();
         }
 
         private void RenderScript(string sourceCode)
@@ -218,6 +229,15 @@ namespace Acolyte.Editor
                 if(wordRenderers[totalWordCount].gameObject.activeSelf)
                     wordRenderers[totalWordCount].gameObject.SetActive(false);
             }
+
+            // Send array to selector
+            AcolyteWordRenderer[] array = new AcolyteWordRenderer[renderersPoolIndex];
+            for(int i = 0; i < array.Length; i++)
+                array[i] = wordRenderers[i];
+            wordSelector.wordRenderers = array;
+
+            // Set highlight after render to ensure correct size
+            SetSelectionHighlight();
         }
 
         private float ParagraphSpacingPixels() => inputField.textComponent.paragraphSpacing * inputField.pointSize * 0.01f;
@@ -225,29 +245,85 @@ namespace Acolyte.Editor
         private void HandleWordSelection(AcolyteWordRenderer word)
         {
             SetContextualizer();
+            SetSelectionHighlight();
         }
 
-        private void SetContextualizer()
+        private void SetContextualizer(bool forceContext = false)
         {
-            if(wordSelector.Selection == null)
+            if(!forceContext && wordSelector.Selection == null && !inputField.isFocused)
             {
-                contextualizer.gameObject.SetActive(false);
+                contextualizer.Set(null);
             }
             else
             {
+                string line;
+                string word;
+                int wordIndex;
+
+                if(wordSelector.Selection != null)
+                {
+                    line = wordSelector.SelectedLine;
+                    word = wordSelector.Selection.Text;
+                    wordIndex = wordSelector.Selection.WordIndexInLine;
+
+                    if(wordSelector.IsSelectionInsideRightSpacing) // Consider spacing as next context
+                    {
+                        wordIndex++;
+                    }
+                }
+                else // If there is no selection due to empty string, force context
+                {
+                    line = "";
+                    word = "";
+                    wordIndex = 0;
+                }
+
                 var contextParamters = new ContextGenerator.Parameters()
                 {
-                    line = wordSelector.SelectedLine.Split(Script.language.Separator),
-                    word = wordSelector.Selection.Text,
-                    wordIndex = wordSelector.Selection.WordIndexInLine,
                     language = Script.language,
-                    declexicon = Script.declexicon
+                    declexicon = Script.declexicon,
+                    line = line,
+                    word = word,
+                    wordIndex = wordIndex
                 };
 
-                contextualizer.Set(ContextGenerator.GetContext(contextParamters), HandleContextSubmit);
-                SetContextualizerPosition();
+                var editContext = ContextGenerator.GetContext(contextParamters);
+
+                if(editContext.EntriesCount > 0)
+                {
+                    contextualizer.Set(editContext);
+                }
+                else
+                {
+                    contextualizer.Set(null);
+                }
             }
         }
+
+        private void SetSelectionHighlight()
+        {
+            if(wordSelector.Selection == null)
+            {
+                if(selectionHighlight.gameObject.activeSelf)
+                    selectionHighlight.gameObject.SetActive(false);
+            }
+            else
+            {
+                if(!selectionHighlight.gameObject.activeSelf)
+                    selectionHighlight.gameObject.SetActive(true);
+
+
+                Vector2 pos = wordSelector.Selection.RectTransform.anchoredPosition;
+                pos.x = Mathf.Round(pos.x); // Round for pixel perfect
+                pos.y = Mathf.Round(pos.y);
+                selectionHighlight.anchoredPosition = pos;
+                float sizeX = wordSelector.Selection.TextField.preferredWidth;
+                float sizeY = wordSelector.Selection.RectTransform.sizeDelta.y;
+                selectionHighlight.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Mathf.Round(sizeX));
+                selectionHighlight.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Mathf.Round(sizeY));
+            }
+        }
+
 
         private void HandleContextSubmit(string value)
         {
@@ -258,6 +334,8 @@ namespace Acolyte.Editor
             sb.Append(str.Substring(wordSelector.Selection.CharIndexMax + 1));
 
             inputField.text = sb.ToString();
+
+            SetSelectionHighlight();
         }
 
         private string ValidateStringSubmit(string value)

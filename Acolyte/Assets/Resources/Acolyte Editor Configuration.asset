@@ -15,10 +15,10 @@ MonoBehaviour:
   fontAsset: {fileID: 0}
   renderConfiguration:
     commentColor: '#A3A3A3'
-    keywordColor: '#51A3F5'
-    statementColor: '#51A3F5'
-    identifierColor: '#CCA88E'
-    literalColor: '#CCA88E'
-    validUndefinedColor: '#FFFFFF'
-    toleratedColor: '#FFFFFF'
-    unrecognizedColor: '#CC1F37'
+    keywordColor: '#008CF0'
+    statementColor: '#008CF0'
+    identifierColor: '#F0EF18'
+    literalColor: '#F0EF18'
+    validUndefinedColor: '#DCDCDC'
+    toleratedColor: '#DCDCDC'
+    unrecognizedColor: '#F01C18'

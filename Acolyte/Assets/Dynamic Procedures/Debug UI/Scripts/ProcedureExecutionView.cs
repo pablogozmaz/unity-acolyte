@@ -15,6 +15,12 @@ namespace TFM.DynamicProcedures.DebugUI
         [SerializeField]
         private TextMeshProUGUI runningStateField;
 
+        [SerializeField]
+        private TextMeshProUGUI stepNumberField;
+
+        [SerializeField]
+        private TextMeshProUGUI stepAmountField;
+
         [Space(8)]
         [SerializeField]
         private Button stepBackButton;
@@ -65,6 +71,8 @@ namespace TFM.DynamicProcedures.DebugUI
             Debug.Assert(execution != null);
 
             runningStateField.text = execution.RunningState.ToString();
+            stepNumberField.text = (execution.CurrentStepIndex + 1).ToString();
+            stepAmountField.text = execution.StepAmount.ToString();
 
             switch(execution.RunningState)
             {

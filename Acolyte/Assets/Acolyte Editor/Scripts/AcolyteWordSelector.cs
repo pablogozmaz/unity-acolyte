@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 using TMPro;
 
 
@@ -15,14 +16,28 @@ namespace Acolyte.Editor
 
         public string SelectedLine { get; private set; }
 
-        private int lastCaretPosition;
+        public bool IsSelectionInsideRightSpacing { get; private set; }
+
+        public AcolyteWordRenderer[] wordRenderers;
+
+        private readonly MonoBehaviour owner;
+        private readonly TMP_InputField inputField;
+
+        private int lastCaretPosition = -1;
 
 
-        public void Update(TMP_InputField inputField, AcolyteWordRenderer[] wordRenderers)
+
+        public AcolyteWordSelector(MonoBehaviour owner, TMP_InputField inputField)
+        {
+            this.owner = owner;
+            this.inputField = inputField;
+        }
+
+        public void Update()
         {
             if(lastCaretPosition != inputField.caretPosition)
             {
-                FindSelection(inputField, wordRenderers);
+                owner.StartCoroutine(FindSelection());
                 lastCaretPosition = inputField.caretPosition;
             }
         }
@@ -31,6 +46,7 @@ namespace Acolyte.Editor
         {
             if(Selection != null)
             {
+                lastCaretPosition = -1;
                 Selection.SetDeselected();
                 Selection = null;
                 SelectedLine = null;
@@ -38,49 +54,94 @@ namespace Acolyte.Editor
             }
         }
 
-        private void FindSelection(TMP_InputField inputField, AcolyteWordRenderer[] wordRenderers)
+        private IEnumerator FindSelection()
         {
-            if(inputField.caretPosition < inputField.textComponent.textInfo.characterInfo.Length)
+            yield return null;
+
+            bool success = false;
+
+            if(wordRenderers != null && wordRenderers.Length > 0)
             {
-                int lineIndex = inputField.textComponent.textInfo.characterInfo[inputField.caretPosition].lineNumber;
-
-                StringBuilder lineBuilder = new StringBuilder();
-
-                for(int i = 0; i < wordRenderers.Length; i++)
+                if(inputField.caretPosition < inputField.textComponent.textInfo.characterInfo.Length)
                 {
-                    var wordRenderer = wordRenderers[i];
+                    int lineIndex = inputField.textComponent.textInfo.characterInfo[inputField.caretPosition].lineNumber;
 
-                    if(wordRenderer.LineIndex < lineIndex) continue;
+                    StringBuilder lineBuilder = new StringBuilder();
 
-                    lineBuilder.Append(wordRenderer.Text);
-
-                    bool IsLastWordInTargetLine() => (i + 1) == wordRenderers.Length || wordRenderers[i + 1].LineIndex > lineIndex;
-
-                    if(wordRenderer.IsCharIndexInRange(inputField.caretPosition) || IsLastWordInTargetLine())
+                    for(int i = 0; i < wordRenderers.Length; i++)
                     {
-                        Select(wordRenderer, lineBuilder.ToString());
-                        return;
+                        var wordRenderer = wordRenderers[i];
+
+                        // Ignore all previous lines
+                        if(wordRenderer.LineIndex < lineIndex) continue;
+
+                        lineBuilder.Append(wordRenderer.Text);
+
+                        // Ignore all previous words
+                        if(inputField.caretPosition < wordRenderer.CharIndexMin) continue;
+                        
+                        if(inputField.caretPosition <= wordRenderer.CharIndexMax)
+                        {
+                            Select(wordRenderer, lineBuilder.ToString());
+                            success = true;
+                        }
+                        else
+                        {
+                            bool isLastWordInTargetLine = (i + 1) == wordRenderers.Length || wordRenderers[i + 1].LineIndex > lineIndex;
+                            if(isLastWordInTargetLine)
+                            {
+                                Select(wordRenderer, lineBuilder.ToString());
+                                success = true;
+                            }
+                        }
                     }
                 }
             }
 
-            ClearSelection();
+            if(!success)
+                ClearSelection();
         }
 
         private void Select(AcolyteWordRenderer wordRenderer, string line)
         {
             if(wordRenderer == Selection)
+            {
+                if(wordRenderer != null)
+                {
+                    // Always update line
+                    SelectedLine = line;
+
+                    IsSelectionInsideRightSpacing = false;
+
+                    // Try process when caret is on last position with spaces
+                    if(inputField.caretPosition > wordRenderer.CharIndexMax)
+                    {
+                        int max = wordRenderer.CharIndexMax;
+                        int min = wordRenderer.CharIndexMin;
+                        int index = (max - min);
+
+                        if(wordRenderer.Text[index] == ' ')
+                        {
+                            IsSelectionInsideRightSpacing = true;
+                        }
+                    }
+
+                    OnSelection?.Invoke(Selection);
+                }
+
                 return;
+            }
 
             if(Selection != null)
             {
                 Selection.SetDeselected();
             }
 
-            SelectedLine = line;
 
+            SelectedLine = line;
             Selection = wordRenderer;
             Selection.SetSelected();
+            IsSelectionInsideRightSpacing = false;
             OnSelection?.Invoke(Selection);
         }
     }

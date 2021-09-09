@@ -10,14 +10,14 @@ namespace Acolyte
         /// <summary>
         /// Compiles a script's source code to an array of executable instructions.
         /// </summary>
-        private class Compiler
+        private sealed class Compiler
         {
             private readonly List<Instruction> instructions = new List<Instruction>();
 
             private readonly Language language;
             private readonly Declexicon declexicon;
             private readonly string source;
-            private readonly Statement[] statements;
+            private readonly IEnumerable<StatementProcessor> statementProcessors;
 
 
             public static Executable Compile(Language language, Declexicon declexicon, string source)
@@ -25,13 +25,13 @@ namespace Acolyte
                 return new Compiler(language, declexicon, source).Compile();
             }
 
+            // Force private constructor
             private Compiler(Language language, Declexicon declexicon, string source)
             {
                 this.language = language;
                 this.declexicon = declexicon;
                 this.source = source;
-
-                statements = language.GenerateStatements();
+                statementProcessors = language.StatementProcessors;
             }
 
             private Executable Compile()
@@ -64,14 +64,14 @@ namespace Acolyte
 
             private bool ProcessStatements(string line)
             {
-                if(statements == null) return false;
+                if(statementProcessors == null) return false;
 
-                foreach(var statement in statements)
+                foreach(var statementProcessor in statementProcessors)
                 {
-                    if(statement.TryGetProcess(line, out var process))
+                    if(statementProcessor.TryGetStatement(line, out var statement))
                     {
-                        Instruction instruction = process.function.Invoke(new StatementParameters(line, instructions.Count));
-                        if(instruction != null) // Not all processes produce an instruction
+                        Instruction instruction = statement.function.Invoke(new StatementParameters(line, instructions.Count));
+                        if(instruction != null) // Not all statements produce an instruction
                             instructions.Add(instruction);
                         return true;
                     }
@@ -142,28 +142,17 @@ namespace Acolyte
             private void AddKeyword(Keyword keyword)
             {
                 if(keyword.HasInvocation)
-                {
-                    AddInstruction(() =>
-                    {
-                        keyword.Invoke();
-                    });
-                }
+                    AddInstruction(keyword.Invoke);
             }
 
             private void AddIdentifier(Identifier identifier, string value)
             {
-                AddInstruction(() =>
-                {
-                    identifier.Invoke(value);
-                });
+                AddInstruction(() => { identifier.Invoke(value); });
             }
 
             private void AddLiteral(Literal literal, string value)
             {
-                AddInstruction(() =>
-                {
-                    literal.Invoke(value);
-                });
+                AddInstruction(() => { literal.Invoke(value); });
             }
 
             private void AddInstruction(Invocation invocation)

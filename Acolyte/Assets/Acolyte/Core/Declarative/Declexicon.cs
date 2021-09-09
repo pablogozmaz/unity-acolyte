@@ -18,12 +18,8 @@ namespace Acolyte
         public Declexicon()
         {
             foreach(var declFactory in declFactories)
-            {
                 if(declFactory.Invoke(this, out Declexeme[] declexemes))
-                {
                     AddDeclexemes(declexemes);
-                }
-            }
         }
 
         public void StartExecution(object context)

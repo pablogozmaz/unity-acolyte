@@ -28,6 +28,7 @@ namespace TFM.DynamicProcedures
         object GetObjectValue();
 
         bool SetObjectValue(object value);
+        bool SetStringValue(string value);
 
         bool ValueEquals(object value);
     }
@@ -92,6 +93,17 @@ namespace TFM.DynamicProcedures
                 return true;
             }
             Debug.Assert(false, "Property value set from object is incorrect type: "+value.GetType()+" expected: "+typeof(T));
+            return false;
+        }
+
+        public bool SetStringValue(string value)
+        {
+            if(TryParseValueFromText(value, out T result))
+            {
+                Value = result;
+                return true;
+            }
+            Debug.Assert(false, "Property (" + Type + ") value set from string could not be parsed: " + value);
             return false;
         }
 

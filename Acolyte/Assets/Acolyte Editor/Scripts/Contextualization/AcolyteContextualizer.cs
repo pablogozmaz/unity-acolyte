@@ -9,7 +9,11 @@ namespace Acolyte.Editor
     [RequireComponent(typeof(RectTransform))]
     public class AcolyteContextualizer : MonoBehaviour
     {
+        public event Action<string> OnSubmit;
+
         public RectTransform RectTransform { get { return rectTransform; } }
+
+        private const int siblingOffset = 2; // Offset due to deactivated prefabs
 
         [SerializeField, HideInInspector]
         private RectTransform rectTransform;
@@ -23,35 +27,36 @@ namespace Acolyte.Editor
         private readonly List<AcolyteContextHeader> headers = new List<AcolyteContextHeader>();
         private readonly List<AcolyteContextSelectable> selectables = new List<AcolyteContextSelectable>();
 
-        private Action<string> submitCallback;
 
-
-        public void Set(WordEditContext editContext, Action<string> submitCallback)
+        public void Set(WordEditContext editContext)
         {
-            if(!gameObject.activeSelf)
-                gameObject.SetActive(true);
-
-            this.submitCallback = submitCallback;
-
             int headerIndex = 0;
             int selectableIndex = 0;
-            foreach(var entry in editContext.Entries)
+            if(editContext != null && editContext.Entries != null)
             {
-                if(entry is WordEditContext.Header header)
+                int totalIndex = 0;
+                foreach(var entry in editContext.Entries)
                 {
-                    if(headerIndex >= headers.Count)
-                        CreateHeader();
+                    if(entry is WordEditContext.Header header)
+                    {
+                        if(headerIndex >= headers.Count)
+                            CreateHeader();
 
-                    headers[headerIndex].SetHeader(header.Text);
-                    headerIndex++;
-                }
-                else if(entry is WordEditContext.Selectable selectable)
-                {
-                    if(selectableIndex >= selectables.Count)
-                        CreateSelectable();
+                        headers[headerIndex].SetHeader(header.Text);
+                        headers[headerIndex].transform.SetSiblingIndex(totalIndex);
+                        headerIndex++;
+                    }
+                    else if(entry is WordEditContext.Selectable selectable)
+                    {
+                        if(selectableIndex >= selectables.Count)
+                            CreateSelectable();
 
-                    selectables[selectableIndex].SetOption(selectable.Text);
-                    selectableIndex++;
+                        selectables[selectableIndex].SetOption(selectable.Text, selectable.Interactable);
+                        selectables[selectableIndex].transform.SetSiblingIndex(totalIndex);
+                        selectableIndex++;
+                    }
+
+                    totalIndex++;
                 }
             }
 
@@ -74,11 +79,6 @@ namespace Acolyte.Editor
             selectablePrefab.gameObject.SetActive(false);
         }
 
-        private void Update()
-        {
-            ProcessDefaultInput();
-        }
-
         private AcolyteContextSelectable CreateSelectable() 
         {
             var selectable = Instantiate(selectablePrefab, selectablePrefab.transform.parent);
@@ -96,16 +96,7 @@ namespace Acolyte.Editor
 
         private void HandleOptionSubmit(string value)
         {
-            submitCallback.Invoke(value);
-        }
-
-        private void ProcessDefaultInput() 
-        {
-            // Cancel selection
-            if(Input.GetKeyDown(KeyCode.Escape))
-            {
-                gameObject.SetActive(false);
-            }
+            OnSubmit?.Invoke(value);
         }
 
         private void OnValidate()

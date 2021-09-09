@@ -53,7 +53,7 @@ namespace TFM.DynamicProcedures
             // InitializeActionExecutions(actionExecutions, environment, registry, settings);
 
             // Script is executed on initialization, since we use it to configure actions
-            step.Script.Execute(environment.AcolyteObjectsContainer, (StepAction[] stepActions) =>
+            step.Script.Execute(environment, (StepAction[] stepActions) =>
             {
                 actionExecutions = new StepActionExecution[stepActions.Length];
                 InitializeActionExecutions(stepActions);

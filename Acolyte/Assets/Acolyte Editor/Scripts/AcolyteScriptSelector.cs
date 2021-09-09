@@ -11,35 +11,49 @@ namespace Acolyte.Editor
     {
         public event Action<ScriptAsset> OnScriptSelected;
 
-        public ScriptAsset Script { get; private set; }
-
-        private readonly Dictionary<string, ScriptAsset> dictionary = new Dictionary<string, ScriptAsset>();
+        public ScriptAsset ScriptAsset { get; private set; }
 
         [SerializeField]
-        private TMP_Dropdown dropdown;
+        private AcolyteScriptSelectionOption optionPrefab;
+
+        [SerializeField]
+        private TMP_Text scriptNameField;
+
+        private readonly List<AcolyteScriptSelectionOption> options = new List<AcolyteScriptSelectionOption>();
 
 
-
-        public void SetAvailableScripts(ScriptAsset[] scripts)
+        public static string GetFullScriptLabel(ScriptAsset scriptAsset)
         {
-            dropdown.ClearOptions();
-            dictionary.Clear();
+            return scriptAsset.name + " (" + scriptAsset.Script.language.Name + ")";
+        }
 
-            List<TMP_Dropdown.OptionData> options = new List<TMP_Dropdown.OptionData>(scripts.Length);
-
-            foreach(var script in scripts)
+        public void SetAvailableScripts(ScriptAsset[] scriptAssets)
+        {
+            int i = 0;
+            if(scriptAssets != null)
             {
-                string key = script.name;
-                options.Add(new TMP_Dropdown.OptionData(key));
-                dictionary.Add(key, script);
+                for(; i < scriptAssets.Length; i++)
+                {
+                    if(i >= options.Count)
+                        CreateOption();
+
+                    options[i].Set(scriptAssets[i]);
+                }
             }
 
-            dropdown.AddOptions(options);
+            // Pool
+            for(; i < options.Count; i++)
+            {
+                if(options[i].gameObject.activeSelf)
+                    options[i].gameObject.SetActive(false);
+            }
         }
 
         private void Awake()
         {
-            dropdown.onValueChanged.AddListener(HandleSelection);
+            scriptNameField.text = "Acolyte Editor";
+
+            optionPrefab.gameObject.SetActive(false);
         }
 
         private void OnDestroy()
@@ -47,17 +61,23 @@ namespace Acolyte.Editor
             OnScriptSelected = null;
         }
 
-        private void HandleSelection(int index)
+        private void HandleSelection(ScriptAsset scriptAsset)
         {
-            var option = dropdown.options[index];
+            ScriptAsset = scriptAsset;
+            OnScriptSelected?.Invoke(scriptAsset);
 
-            if(dictionary.TryGetValue(option.text, out ScriptAsset script))
+            scriptNameField.text = GetFullScriptLabel(scriptAsset);
+        }
+
+        private AcolyteScriptSelectionOption CreateOption() 
+        {
+            var option = Instantiate(optionPrefab, optionPrefab.transform.parent);
+            option.OnSelected += (ScriptAsset asset) =>
             {
-                Script = script;
-                OnScriptSelected?.Invoke(script);
-            }
-            else
-                throw new Exception("Dropdown has incorrect selection value: "+option.text);
+                HandleSelection(asset);
+            };
+            options.Add(option);
+            return option;
         }
     }
 }

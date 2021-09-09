@@ -13,9 +13,11 @@ namespace Acolyte
         public char Separator { get; protected set; } = ' ';
         public bool IsCaseSensitive { get; protected set; } = true;
 
-        private List<Type> statementTypes;
+        public IEnumerable<StatementProcessor> StatementProcessors => statementProcessors;
 
-        private Dictionary<Type, IExpression> expressions;
+        private List<StatementProcessor> statementProcessors;
+
+        private Dictionary<Type, IExpressions> expressions;
 
 
         /// <summary>
@@ -23,21 +25,34 @@ namespace Acolyte
         /// </summary>
         public abstract Declexicon CreateDeclexicon();
 
+        public void AddStatements(StatementProcessor statementProcessor)
+        {
+            if(statementProcessors == null)
+                statementProcessors = new List<StatementProcessor>();
+
+            statementProcessor.Initialize(this);
+            statementProcessors.Add(statementProcessor);
+        }
+
         public void AddExpression<T>(string expression, Func<T> func) where T : struct 
         {
             if(expressions == null)
-                expressions = new Dictionary<Type, IExpression>();
+                expressions = new Dictionary<Type, IExpressions>();
 
-            Expression<T> expr = new Expression<T>();
-            expr.Add(expression, func);
-            expressions.Add(typeof(T), expr);
+            if(!expressions.TryGetValue(typeof(T), out IExpressions expr))
+            {
+                expr = new Expressions<T>();
+                expressions.Add(typeof(T), expr);
+            }
+
+            (expr as Expressions<T>).Add(expression, func);
         }
 
         public bool TryGetExpression<T>(string name, out T value) where T : struct
         {
             if(expressions != null && expressions.TryGetValue(typeof(T), out var iexpression))
             {
-                if(iexpression is Expression<T> expression)
+                if(iexpression is Expressions<T> expression)
                 {
                     return expression.TryGet(name, out value);
                 }
@@ -56,36 +71,22 @@ namespace Acolyte
             return null;
         }
 
-        public void AddStatement<T>() where T : Statement
+        public bool ExpressionExists<T>(string name) where T : struct
         {
-            if(statementTypes == null)
-                statementTypes = new List<Type>();
-
-            var type = typeof(T);
-
-            if(!statementTypes.Contains(type))
-                statementTypes.Add(type);
-        }
-
-        /// <summary>
-        /// Returns an array of Statement instances generated from registered types.
-        /// </summary>
-        public Statement[] GenerateStatements() 
-        {
-            if(statementTypes != null)
+            if(expressions != null && expressions.TryGetValue(typeof(T), out var iexpression))
             {
-                Statement[] array = new Statement[statementTypes.Count];
-
-                for(int i = 0; i < statementTypes.Count; i++)
-                {
-                    array[i] = Activator.CreateInstance(statementTypes[i]) as Statement;
-                    array[i].Language = this;
-                }
-
-                return array;
+                return iexpression.Contains(name);
             }
+            return false;
+        }     
 
-            return null;
+        public bool ExpressionExists(string name, Type type)
+        {
+            if(expressions != null && expressions.TryGetValue(type, out var iexpression))
+            {
+                return iexpression.Contains(name);
+            }
+            return false;
         }
     }
 }

@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 namespace Acolyte.Editor
 {
+    /// <summary>
+    /// Contains all data to generate a contextualizer for a word.
+    /// </summary>
     public class WordEditContext
     {
         public interface IEntry
@@ -24,16 +27,20 @@ namespace Acolyte.Editor
         public struct Selectable : IEntry
         {
             public string Text { get; private set; }
+            public bool Interactable { get; private set; }
 
-            public Selectable(string text)
+            public Selectable(string text, bool interactable = true)
             {
                 Text = text;
+                Interactable = interactable;
             }
         }
 
+        public int EntriesCount => entries.Length;
+
         public IEnumerable<IEntry> Entries => entries;
 
-        private IEntry[] entries;
+        private readonly IEntry[] entries;
 
 
         public WordEditContext(params IEntry[] entries)

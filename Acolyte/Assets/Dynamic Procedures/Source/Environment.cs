@@ -13,16 +13,26 @@ namespace TFM.DynamicProcedures
     [AddComponentMenu("Dynamic Procedures/Environment")]
     public class Environment : Entity
     {
+        private class CameraTargets : UnityContainerBehaviour<Transform> {}
+
         public static event Action<Environment> OnEnvironmentInitialized;
 
         public IEnumerable<Entity> AllEntities { get { return entityDictionary.Values; } }
 
-        public AcolyteGameObjectsContainer AcolyteObjectsContainer { get { return acolyteObjectsContainer; } }
+        public AcolyteGameObjectsContainer ObjectsContainer => objectsContainer;
+        public AcolyteEntityContainer EntityContainer => entityContainer;
+        public UnityContainerBehaviour<Transform> CameraTargetContainer => cameraTargetContainer;
 
         private Dictionary<string, Entity> entityDictionary;
 
         [SerializeField]
-        private AcolyteGameObjectsContainer acolyteObjectsContainer;
+        private AcolyteGameObjectsContainer objectsContainer;
+
+        [SerializeField]
+        private AcolyteEntityContainer entityContainer;
+
+        [SerializeField]
+        private CameraTargets cameraTargetContainer;
 
 
         public bool TryGetEntity(string id, out Entity entity)
@@ -52,6 +62,12 @@ namespace TFM.DynamicProcedures
             }
 
             OnEnvironmentInitialized?.Invoke(this);
+        }
+
+        private void OnValidate()
+        {
+            if(cameraTargetContainer == null)
+                cameraTargetContainer = gameObject.AddComponent<CameraTargets>();
         }
     }
 }

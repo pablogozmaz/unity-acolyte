@@ -10,11 +10,15 @@ namespace Acolyte
     /// </summary>
     public sealed partial class Script
     {
+        public static event Action<Script> OnCompilation;
+
         public string Source { get; private set; }
 
         public readonly Language language;
 
         public readonly Declexicon declexicon;
+
+        public bool IsCompiled => executable != null;
 
         private Executable executable;
 
@@ -35,13 +39,13 @@ namespace Acolyte
         {
             Source = source;
 
-            if(compile)
+            if(compile || IsCompiled)
                 Compile();
         }
 
         public void Execute<T>(object context, Action<T> callback) where T : class
         {
-            if(executable == null)
+            if(!IsCompiled)
                 Compile();
 
             declexicon.StartExecution(context);
@@ -52,6 +56,7 @@ namespace Acolyte
         private void Compile()
         {
             executable = Compiler.Compile(language, declexicon, Source);
+            OnCompilation?.Invoke(this);
         }
     }
 }

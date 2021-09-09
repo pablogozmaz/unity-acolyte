@@ -14,6 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   source: 'if profile is expert
 
-    interact with AssemblyParts1 using herramienta.
+    interact with AssemblyParts2 using herramienta
 
-    endif'
+    endif
+
+    set
+    property Screw3 in Machine as true
+
+    set camera target target2'

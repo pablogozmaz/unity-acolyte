@@ -10,6 +10,8 @@ namespace Acolyte
     {
         public abstract Script Script { get; }
 
+        public string Source => source;
+
         protected abstract bool AutoCompileOnInitialization { get; }
 
         [SerializeField, Multiline]

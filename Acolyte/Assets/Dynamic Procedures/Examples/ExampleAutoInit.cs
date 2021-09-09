@@ -1,17 +1,26 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
+using Acolyte;
 
 
 namespace TFM.DynamicProcedures.Examples
 {
-    public class UseCaseExample : MonoBehaviour
+    public class ExampleAutoInit : MonoBehaviour
     {
         [SerializeField]
         private Environment environment;
 
         [SerializeField]
         private Procedure procedure;
+
+        [Space(8)]
+        [SerializeField]
+        private UnityEvent OnProcedureReset;
+
+
+        private ProcedureExecution execution;
 
 
         private void Start()
@@ -21,6 +30,13 @@ namespace TFM.DynamicProcedures.Examples
             environment.SetEntities(allEntities);
 
             ExecuteProcedure(environment, procedure);
+
+            Script.OnCompilation += HandleScriptCompilation;
+        }
+
+        private void OnDestroy()
+        {
+            Script.OnCompilation -= HandleScriptCompilation;
         }
 
         private void ExecuteProcedure(Environment e, Procedure p)
@@ -31,7 +47,19 @@ namespace TFM.DynamicProcedures.Examples
                 canStepBackwards = true,
             };
 
-            new ProcedureExecution(e, p, settings);
+            execution = new ProcedureExecution(e, p, settings);
+        }
+
+        private void HandleScriptCompilation(Script script) 
+        {
+            if(execution != null)
+            {
+                execution.CancelExecution();
+
+                ExecuteProcedure(environment, procedure);
+
+                OnProcedureReset.Invoke();
+            }
         }
     }
 }

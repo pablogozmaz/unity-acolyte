@@ -1,58 +1,28 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 
 namespace Acolyte
 {
-    public abstract class Statement
+    public class Statement
     {
-        public Language Language
+        public delegate Instruction Function(StatementParameters parameters);
+
+        public readonly string token;
+
+        /// <summary>
+        /// The type returned by the expression interpreted by this process. Should be null if no expression is needed.
+        /// </summary>
+        public readonly Type expressionType;
+
+        public readonly Function function;
+
+
+        public Statement(string token, Function function, Type expressionType = null)
         {
-            get { return language; }
-            set
-            {
-                if(language == null)
-                    language = value;
-                else
-                    throw new Exception("Language should not be assigned twice to a Statement.");
-            }
+            this.token = token;
+            this.function = function;
+            this.expressionType = expressionType;
         }
-
-        private readonly Dictionary<string, StatementProcess> processes = new Dictionary<string, StatementProcess>();
-
-        private Language language;
-
-
-        public Statement()
-        {
-            PopulateProcessesDictionary();
-        }
-
-        public bool TryGetProcess(string line, out StatementProcess process)
-        {
-            foreach(var valuePair in processes)
-            {
-                string token = valuePair.Key.Trim();
-
-                if(line.StartsWith(token))
-                {
-                    process = valuePair.Value;
-                    return true;
-                }
-            }
-
-            process = default;
-            return false;
-        }
-
-        private void PopulateProcessesDictionary() 
-        {
-            foreach(var process in DefineProcesses())
-                processes.Add(process.token, process);
-        }
-
-        // Require statements to define all their processes
-        protected abstract StatementProcess[] DefineProcesses();
     }
+
 }

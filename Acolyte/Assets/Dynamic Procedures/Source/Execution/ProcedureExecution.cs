@@ -33,6 +33,7 @@ namespace TFM.DynamicProcedures
         public StepExecution CurrentStepExecution { get; private set; }
 
         public int CurrentStepIndex { get; private set; }
+        public int StepAmount { get { return stepExecutions != null ? stepExecutions.Length : 0; } }
 
         private static readonly HashSet<ProcedureExecution> activeExecutions = new HashSet<ProcedureExecution>();
 
@@ -114,8 +115,15 @@ namespace TFM.DynamicProcedures
             {
                 case ExecutionRunningState.InProcess:
                 case ExecutionRunningState.AwaitingStart:
+
+                    for(int i = CurrentStepIndex; i >= 0; i--)
+                    {
+                        stepExecutions[i].UndoExecution();
+                    }
+
                     RunningState = ExecutionRunningState.Cancelled;
                     registryRecorder.AddEntry(ExecutionRegistry.KeyProcedureCancelled);
+
                     NullifyExecution();
                     break;
 

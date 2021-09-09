@@ -11,7 +11,7 @@ namespace Acolyte.Editor
         private readonly string sourceCode;
         private readonly Language language;
         private readonly Declexicon declexicon;
-        private readonly Statement[] statements;
+        private readonly IEnumerable<StatementProcessor> statementProcessors;
         private readonly List<RenderUnit> lineBuilder = new List<RenderUnit>();
 
         private RenderConfiguration RenderConfiguration { get { return RenderConfiguration.Current; } }
@@ -22,7 +22,7 @@ namespace Acolyte.Editor
             this.sourceCode = sourceCode;
             this.language = language;
             this.declexicon = declexicon;
-            statements = language.GenerateStatements();
+            statementProcessors = language.StatementProcessors;
         }
 
         public static RenderUnit[][] GenerateRender(string sourceCode, Language language, Declexicon declexicon)
@@ -78,15 +78,27 @@ namespace Acolyte.Editor
 
         private bool ProcessStatements(string line)
         {
-            if(statements == null) return false;
+            if(statementProcessors == null) return false;
 
-            foreach(var statement in statements)
+            foreach(var processor in statementProcessors)
             {
-                if(statement.TryGetProcess(line, out var process))
+                if(processor.TryGetStatement(line, out var statement))
                 {
-                    AddStatementToken(process.token);
+                    AddStatementToken(statement.token);
 
-                    AddValidUndefined(line.Remove(0, process.token.Length));
+                    string expression = line.Remove(0, statement.token.Length);
+
+                    if(statement.expressionType != null)
+                    {
+                        if(language.ExpressionExists(expression, statement.expressionType))
+                            AddValidUndefined(expression);
+                        else
+                            AddUnrecognized(expression);
+                    }
+                    else 
+                    {
+                        AddValidUndefined(expression);
+                    }
 
                     return true;
                 }
@@ -113,7 +125,7 @@ namespace Acolyte.Editor
                         AddSeparator();
                         i++;
                     } 
-                    while(line[i] == language.Separator);
+                    while(i < line.Length && line[i] == language.Separator);
 
                     startIndex = i;
                     i--;
@@ -141,7 +153,27 @@ namespace Acolyte.Editor
             // 3 - Identifier
             else if(current.SubsequentIdentifier != null)
             {
-                AddIdentifier(current.SubsequentIdentifier, word);
+                bool validIdentifier = true;
+
+                if(current.SubsequentIdentifier is IUnityIdentifier unityIdentifier)
+                {
+                    var container = unityIdentifier.ProvideContainer();
+                    validIdentifier = false;
+                    if(container != null)
+                    {
+                        foreach(var id in container.GetAllIdentifiers())
+                        {
+                            if(id == word)
+                                validIdentifier = true;
+                        }
+                    }
+                }
+
+                if(validIdentifier)
+                    AddIdentifier(current.SubsequentIdentifier, word);
+                else
+                    AddUnrecognized(word);
+
                 current = current.SubsequentIdentifier;
             }
             // 4 - Literal

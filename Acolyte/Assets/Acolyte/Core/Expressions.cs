@@ -8,14 +8,17 @@ namespace Acolyte
     /// <summary>
     /// Interface inherited by all expression types.
     /// </summary>
-    public interface IExpression
+    public interface IExpressions
     {
         IEnumerable<string> GetAllExpressionTokens();
+
+        bool Contains(string name);
     }
 
-    public class Expression<T> : IExpression where T : struct
+    public class Expressions<T> : IExpressions where T : struct
     {
         private readonly Dictionary<string, Func<T>> dictionary = new Dictionary<string, Func<T>>();
+
 
         public void Add(string name, Func<T> value)
         {
@@ -25,13 +28,17 @@ namespace Acolyte
         public bool TryGet(string name, out T value)
         {
             if(dictionary.TryGetValue(name, out Func<T> func))
-            {
-                value = func.Invoke();
+            {                value = func.Invoke();
                 return true;
             }
 
             value = default;
             return false;
+        }
+
+        public bool Contains(string name)
+        {
+            return dictionary.ContainsKey(name);
         }
 
         public IEnumerable<string> GetAllExpressionTokens()

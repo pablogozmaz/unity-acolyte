@@ -13,9 +13,12 @@ namespace TFM.DynamicProcedures
         {
             IsCaseSensitive = false;
 
-            AddStatement<IfElse>();
+            AddStatements(new IfElse("if", "else", "endif"));
 
             AddExpression("profile is expert", IsProfileExpert);
+            AddExpression("booleanExample", ()=> { return true; });
+            AddExpression("true", () => { return true; });
+            AddExpression("false", () => { return false; });
         }
 
         // Define the desired scope
