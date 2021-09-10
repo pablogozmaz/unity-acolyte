@@ -128,7 +128,7 @@ namespace Acolyte.Editor
 
         private void RenderScript(string sourceCode)
         {
-            var renderUnits = RenderUnitGenerator.GenerateRender(sourceCode, Script.language, Script.declexicon);
+            var renderUnits = RenderUnit.GenerateView(sourceCode, Script.language, Script.declexicon);
             StartCoroutine(RenderCoroutine(renderUnits));
             inputField.text = sourceCode;
 

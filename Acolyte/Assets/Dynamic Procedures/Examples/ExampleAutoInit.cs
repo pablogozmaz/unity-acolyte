@@ -52,7 +52,7 @@ namespace TFM.DynamicProcedures.Examples
 
         private void HandleScriptCompilation(Script script) 
         {
-            if(execution != null)
+            if(execution != null && execution.RunningState != ExecutionRunningState.AwaitingStart)
             {
                 execution.CancelExecution();
 

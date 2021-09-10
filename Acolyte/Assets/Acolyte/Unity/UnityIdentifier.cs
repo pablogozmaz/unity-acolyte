@@ -3,15 +3,10 @@ using System;
 
 namespace Acolyte
 {
-    public interface IUnityIdentifier
-    {
-        IUnityContainerBehaviour ProvideContainer();
-    }
-
     /// <summary>
     /// Identifier word with a Unity object as the invocation parameter.
     /// </summary>
-    public class UnityIdentifier<T> : Identifier<T>, IUnityIdentifier where T : class
+    public class UnityIdentifier<T> : Identifier<T> where T : class
     {
         private readonly Func<UnityContainerBehaviour<T>> containerProvider;
 
@@ -29,7 +24,7 @@ namespace Acolyte
                 invocation.Invoke(null);
         }
 
-        public IUnityContainerBehaviour ProvideContainer() 
+        public override IIdentifierContainer ProvideContainer() 
         {
             return containerProvider.Invoke();
         }

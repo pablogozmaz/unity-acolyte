@@ -45,13 +45,19 @@ namespace Acolyte.Editor
         {
             entries.Clear();
 
-            ProcessLines();
+            ProcessLine();
 
             return new WordEditContext(entries.ToArray());
         }
 
-        private void ProcessLines()
+        private void ProcessLine()
         {
+            if(line.StartsWith(language.Comment))
+            {
+                AddSelectableEntry("<Comment>", false);
+                return;
+            }
+
             bool continueProcess = true;
 
             ProcessStatements(ref continueProcess);
@@ -186,15 +192,13 @@ namespace Acolyte.Editor
         private void AddIdentifierEntries(Identifier identifier) 
         {
             List<string> ids = new List<string>();
-            if(identifier is IUnityIdentifier unityIdentifier)
+
+            var container = identifier.ProvideContainer();
+            if(container != null)
             {
-                var container = unityIdentifier.ProvideContainer();
-                if(container != null)
+                foreach(var id in container.GetAllIdentifiers())
                 {
-                    foreach(var id in container.GetAllIdentifiers())
-                    {
-                        ids.Add(id);
-                    }
+                    ids.Add(id);
                 }
             }
 

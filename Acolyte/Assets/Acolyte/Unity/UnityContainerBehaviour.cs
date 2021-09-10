@@ -6,16 +6,11 @@ using UnityEngine;
 
 namespace Acolyte
 {
-    public interface IUnityContainerBehaviour
-    {
-        IEnumerable<string> GetAllIdentifiers();
-    }
-
     /// <summary>
     /// Serializes objects identified with a string.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class UnityContainerBehaviour<T> : MonoBehaviour, IUnityContainerBehaviour where T : class
+    public class UnityContainerBehaviour<T> : MonoBehaviour, IIdentifierContainer where T : class
     {
         [Serializable]
         private struct Data
