@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 897dcd0f427fbba4abdfe0a73ba74447, type: 3}
+  m_Name: Machine Operation Procedure
+  m_EditorClassIdentifier: 
+  infoEntries:
+  - header: "Descripci\xF3n"
+    body: Consiste en lanzar aros.
+  steps:
+  - name: Lower rotor assembly
+    infoEntries:
+    - header: "Tiempo de ejecuci\xF3n"
+      body: Se tarda mucho.
+    - header: "Descripci\xF3n"
+      body: Hacer muchas cosas.
+    actions:
+    - {fileID: 0}
+    scriptAsset: {fileID: 11400000, guid: 36e9ff2305d6be143b18dbcf226914bd, type: 2}
+  - name: Lower rotor assembly2
+    infoEntries:
+    - header: "Descripci\xF3n"
+      body: 'Hay que hacer cosas.
+
+        Muchas cosas.'
+    actions:
+    - {fileID: 0}
+    scriptAsset: {fileID: 11400000, guid: e295b855fc2f4ee429da69c4e0e05325, type: 2}
+  - name: Lower rotor assembly3
+    infoEntries: []
+    actions:
+    - {fileID: 0}
+    scriptAsset: {fileID: 11400000, guid: 40dbddba1ce953448991427ffe91307e, type: 2}
+  - name: Top rotor assembly1
+    infoEntries: []
+    actions:
+    - {fileID: 0}
+    scriptAsset: {fileID: 11400000, guid: 094c23db1a9d72b4c9e7f46366f1b526, type: 2}
+  - name: Top rotor assembly2
+    infoEntries: []
+    actions:
+    - {fileID: 0}
+    scriptAsset: {fileID: 11400000, guid: db0f33e52cf4507438139a02e451fa11, type: 2}
+  - name: Top rotor assembly3
+    infoEntries: []
+    actions:
+    - {fileID: 0}
+    scriptAsset: {fileID: 11400000, guid: 3c82717071900a44799ba62c2226962c, type: 2}

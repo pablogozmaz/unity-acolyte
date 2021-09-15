@@ -40,8 +40,13 @@ namespace Acolyte
             Source = source;
 
             if(compile || IsCompiled)
+            {
+                declexicon.HandleRecompilation();
                 Compile();
+            }
         }
+
+        public void Execute<T>(Action<T> callback) where T : class => Execute(null, callback);
 
         public void Execute<T>(object context, Action<T> callback) where T : class
         {
@@ -53,7 +58,7 @@ namespace Acolyte
             declexicon.CompleteExecution(callback);
         }
 
-        private void Compile()
+        public void Compile()
         {
             executable = Compiler.Compile(language, declexicon, Source);
             OnCompilation?.Invoke(this);

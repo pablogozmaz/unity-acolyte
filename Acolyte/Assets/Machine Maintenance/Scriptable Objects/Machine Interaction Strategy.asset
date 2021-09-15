@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd501d4a33b77434bbf77323f7f6b11d, type: 3}
+  m_Name: Machine Interaction Strategy
+  m_EditorClassIdentifier: 
+  defaultColor: {r: 0.50743145, g: 0.58250386, b: 0.5943396, a: 1}
+  interactableColor: {r: 0.33459416, g: 0.4379043, b: 0.9716981, a: 1}
+  interactedColor: {r: 0.4298853, g: 0.764151, b: 0.3280082, a: 1}

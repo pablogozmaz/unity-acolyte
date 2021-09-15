@@ -99,7 +99,7 @@ namespace Acolyte.Editor
                 if(ScriptAsset == null)
                     return;
 
-                RenderScript(value);
+                RenderScript(value, false);
             });
 
             InputField.onSelect.AddListener((string ignore) => 
@@ -126,11 +126,13 @@ namespace Acolyte.Editor
             wordSelector.Update();
         }
 
-        private void RenderScript(string sourceCode)
+        private void RenderScript(string sourceCode, bool updateInputField = true)
         {
             var renderUnits = RenderUnit.GenerateView(sourceCode, Script.language, Script.declexicon);
             StartCoroutine(RenderCoroutine(renderUnits));
-            inputField.text = sourceCode;
+
+            if(updateInputField)
+                inputField.text = sourceCode;
 
             int lineCount = sourceCode.Count(c => c == newLine) + 1;
             SetCountField(lineCount > 0 ? lineCount : 1);
@@ -164,7 +166,7 @@ namespace Acolyte.Editor
 
                 int wordIndexInLine = 0;
 
-                //Ignore out of bounds
+                // Ignore out of bounds
                 if(lineIndex < renderUnits.Length && wordIndexInLine < renderUnits[lineIndex].Length)
                 {
                     var renderUnit = renderUnits[lineIndex][wordIndexInLine];

@@ -34,6 +34,8 @@ namespace Acolyte
 
         public abstract void EndOfLine();
 
+        public virtual void HandleRecompilation() { }
+
         protected static void AddDeclexemeFactory<T>(Func<T, Declexeme[]> factoryMethod) where T : Declexicon
         {
             declFactories.Add(new DeclexemeFactory<T>(factoryMethod));

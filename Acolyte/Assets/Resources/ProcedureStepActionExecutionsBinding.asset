@@ -7,10 +7,8 @@ TextAsset:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: ProcedureStepActionExecutionsBinding
-  m_Script: '{"TFM.DynamicProcedures.Examples.InteractionAction, Assembly-CSharp,
-    Version=0.0.0.0, Culture=neutral, PublicKeyToken=null":"TFM.DynamicProcedures.Examples.InteractionActionExecution,
-    Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null","TFM.DynamicProcedures.Examples.MachineOperationAction,
-    Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null":"TFM.DynamicProcedures.Examples.MachineOperationActionExecution,
-    Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null","TFM.DynamicProcedures.Examples.StepActionExample,
-    Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null":"TFM.DynamicProcedures.Examples.StepActionExampleExecution,
+  m_Script: '{"ProcedUnity.InteractionAction, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null":"ProcedUnity.InteractionActionExecution, Assembly-CSharp,
+    Version=0.0.0.0, Culture=neutral, PublicKeyToken=null","ProcedUnity.StepFunctions,
+    Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null":"ProcedUnity.StepFunctionsExecution,
     Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"}'

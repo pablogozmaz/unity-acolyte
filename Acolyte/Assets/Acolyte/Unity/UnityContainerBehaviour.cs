@@ -10,7 +10,7 @@ namespace Acolyte
     /// Serializes objects identified with a string.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class UnityContainerBehaviour<T> : MonoBehaviour, IIdentifierContainer where T : class
+    public class UnityContainerBehaviour<T> : MonoBehaviour, IIdentifierContainer<T> where T : class
     {
         [Serializable]
         private struct Data
